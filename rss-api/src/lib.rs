@@ -9,7 +9,7 @@ struct Post{
 }
 
 pub mod database{
-    use mysql::{prelude::Queryable, Pool};
+    use mysql::{prelude::Queryable, Pool, params};
 
     pub struct DatabaseConnection{
         pool :Pool,
@@ -45,6 +45,23 @@ pub mod database{
             let result: Result<Vec<String>, _> = conn.query(query);
             result.unwrap()
         }
+
+        pub async fn insert_posts(&self, posts: Vec<crate::Post>) -> Result<() , mysql::Error>{
+            let mut conn = self.pool.get_conn().unwrap();
+            conn.exec_batch(
+                r"INSERT into post (url, title, content, date_added, description, image) 
+                VALUES (:url, :title, :content, :date_added, :description, :image)",
+                    posts.iter().map(|p| params! {
+                        "url" => &p.link,
+                        "title" => &p.title,
+                        "content" => &p.content,
+                        "date_added" => &p.date,
+                        "description" => &p.description,
+                        "image" => &p.enclosure
+                    })
+            )?;
+            Ok(())
+        }
     }
     
     impl Clone for DatabaseConnection{
@@ -63,7 +80,7 @@ pub mod rss_parser{
     use roxmltree::Node;
 
     /// get_whole_feed expects a list of urls to get feed data from
-    async fn get_whole_feed(urls: Vec<String>) -> Vec<Post>{
+    pub async fn get_whole_feed(urls: Vec<String>) -> Vec<Post>{
         let vec: Arc<Mutex<Vec<Post>>> = Arc::new(Mutex::new(Vec::new()));
         let mut handles = vec![];
 
@@ -296,17 +313,13 @@ pub mod rss_parser{
         Ok(vec)
     }
 
-    fn from_fs(path: &str) -> String{
-        String::from_utf8_lossy(&fs::read(path).unwrap()).parse().unwrap()
-    }
-
     #[cfg(test)]
-    mod tests{
+    mod rss_tests{
         use super::*;
 
         #[tokio::test]
         async fn test_rss_2_0(){
-            let data = from_fs("rss-20.xml");
+            let data: String = String::from_utf8_lossy(&fs::read("rss-20.xml").unwrap()).parse().unwrap();
             let res = parse_feed(&data).await;
             assert_eq!(res.is_ok(), true);
             match res{
@@ -324,7 +337,7 @@ pub mod rss_parser{
 
         #[tokio::test]
         async fn test_rss_0_91(){
-            let data = from_fs("rss-91.xml");
+            let data: String = String::from_utf8_lossy(&fs::read("rss-91.xml").unwrap()).parse().unwrap();
             let res = parse_feed(&data).await;
             match res{
                 Ok(vec) => {
@@ -341,7 +354,7 @@ pub mod rss_parser{
 
         #[tokio::test]
         async fn test_rss_0_92(){
-            let data = from_fs("rss-92.xml");
+            let data: String = String::from_utf8_lossy(&fs::read("rss-92.xml").unwrap()).parse().unwrap();
             let res = parse_feed(&data).await;
             match res{
                 Ok(vec) => {
@@ -358,7 +371,7 @@ pub mod rss_parser{
 
         #[tokio::test]
         async fn test_atom(){
-            let data = from_fs("atom.xml");
+            let data: String = String::from_utf8_lossy(&fs::read("atom.xml").unwrap()).parse().unwrap();
             let res = parse_feed(&data).await;
             match res{
                 Ok(vec) => {
@@ -374,10 +387,43 @@ pub mod rss_parser{
         }
 
         #[tokio::test]
+        #[ignore]
         async fn test_get_url_works(){
-            let text = from_url("https://www.theverge.com/rss/index.xml").await.unwrap();
+            // a url pointing to the raw data of the atom.xml file hosted on github
+            let text = from_url("https://raw.githubusercontent.com/Harjun751/rss-reader/main/rss-api/atom.xml").await.unwrap();
             println!("{text}");
             assert_eq!(text.contains("Google’s use of student data could effectively ban Chromebooks from Denmark schools"), true)
+        }
+
+        #[tokio::test]
+        #[ignore]
+        async fn test_get_feed_works(){
+            // this should be a urls pointing to .xml files online
+            let urls: Vec<String> = vec!["https://raw.githubusercontent.com/Harjun751/rss-reader/main/rss-api/atom.xml".to_string()];
+            let posts = get_whole_feed(urls).await;
+            let post = posts.iter().find(|x| x.title == "Google’s use of student data could effectively ban Chromebooks from Denmark schools");
+            // should not error if all is good
+            let post = post.unwrap();
+            assert!(posts.len() > 0);
+        }
+    }
+}
+
+#[cfg(test)]
+mod integrated_tests{
+    use crate::database::DatabaseConnection;
+
+    #[tokio::test]
+    async fn test_get_feed_insert_data_to_db(){
+        // this should be a urls pointing to .xml files online
+        let urls: Vec<String> = vec!["https://raw.githubusercontent.com/Harjun751/rss-reader/main/rss-api/atom.xml".to_string()];
+        let posts = crate::rss_parser::get_whole_feed(urls).await;
+
+        let conn = DatabaseConnection::new();
+        let res = conn.insert_posts(posts).await;
+        match res {
+            Ok(_) => {},
+            Err(err) => {println!("Error: {}", err.to_string()); assert!(false)}
         }
     }
 }

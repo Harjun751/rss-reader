@@ -2,9 +2,12 @@ create DATABASE RSS;
 USE RSS;
 CREATE TABLE post (
 	url VARCHAR(500) PRIMARY KEY,
+	title VARCHAR(200),
 	content TEXT,
 	date_added DATE,
-	last_accessed DATE
+	last_accessed DATE,
+	description VARCHAR(500),
+	image VARCHAR(500),
 );
 
 CREATE TABLE user(
