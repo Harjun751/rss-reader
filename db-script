@@ -1,31 +1,36 @@
-create DATABASE RSS;
-USE RSS;
-CREATE TABLE post (
-	url VARCHAR(500) PRIMARY KEY,
-	title VARCHAR(200),
-	content TEXT,
-	date_added DATE,
-	last_accessed DATE,
-	description VARCHAR(500),
-	image VARCHAR(500),
-);
+create DATABASE rss;
+USE rss;
 
 CREATE TABLE user(
 	uid INT PRIMARY KEY
 );
 
 CREATE TABLE publisher(
-	pubid INT PRIMARY KEY,
-	url VARCHAR(500)
+	pid INT PRIMARY KEY AUTO_INCREMENT,
+	url VARCHAR(500) UNIQUE,
+	name VARCHAR(50)
 );
 
 CREATE TABLE user_pubs (
 	uid INT,
-	pubid INT,
-	PRIMARY KEY (uid, pubid),
+	pid INT,
+	PRIMARY KEY (uid, pid),
 	FOREIGN KEY (uid) REFERENCES user(uid),
-	FOREIGN KEY (pubid) REFERENCES publisher(pubid)
+	FOREIGN KEY (pid) REFERENCES publisher(pid)
+);
+
+CREATE TABLE post (
+	id INT PRIMARY KEY AUTO_INCREMENT,
+	url VARCHAR(500) UNIQUE,
+	title VARCHAR(200),
+	content TEXT,
+	date_added DATETIME,
+	description VARCHAR(500),
+	image VARCHAR(500),
+	pid INT,
+	FOREIGN KEY (pid) REFERENCES publisher(pid)
 );
 
 INSERT into user (uid) VALUES (1);
-INSERT into publisher (pubid, url) VALUES (1, 'https://www.theverge.com/rss/index.xml');
+INSERT into publisher (pid, url, name) VALUES (1, 'https://www.theverge.com/rss/index.xml', 'The Verge');
+INSERT INTO user_pubs (uid, pid) VALUES (1, 1);
