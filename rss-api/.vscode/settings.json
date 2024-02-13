@@ -1,6 +1,7 @@
 {
-    "editor.codeActionsOnSave": {
-        
-    },
-    "editor.formatOnSave": true
+    "editor.codeActionsOnSave": {},
+    "editor.formatOnSave": true,
+    "rust-analyzer.linkedProjects": [
+        "./Cargo.toml"
+    ]
 }

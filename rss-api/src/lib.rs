@@ -486,7 +486,7 @@ pub mod rss_parser {
         // NEED REFACTOR
         #[tokio::test]
         async fn test_rss_2_0() {
-            let data: String = String::from_utf8_lossy(&fs::read("rss-20.xml").unwrap())
+            let data: String = String::from_utf8_lossy(&fs::read("test-files/rss-20.xml").unwrap())
                 .parse()
                 .unwrap();
             let obj = URLObject {
@@ -511,7 +511,7 @@ pub mod rss_parser {
 
         #[tokio::test]
         async fn test_rss_0_91() {
-            let data: String = String::from_utf8_lossy(&fs::read("rss-91.xml").unwrap())
+            let data: String = String::from_utf8_lossy(&fs::read("test-files/rss-91.xml").unwrap())
                 .parse()
                 .unwrap();
             let obj = URLObject {
@@ -534,7 +534,7 @@ pub mod rss_parser {
 
         #[tokio::test]
         async fn test_rss_0_92() {
-            let data: String = String::from_utf8_lossy(&fs::read("rss-92.xml").unwrap())
+            let data: String = String::from_utf8_lossy(&fs::read("test-files/rss-92.xml").unwrap())
                 .parse()
                 .unwrap();
             let obj = URLObject {
@@ -557,7 +557,7 @@ pub mod rss_parser {
 
         #[tokio::test]
         async fn test_atom() {
-            let data: String = String::from_utf8_lossy(&fs::read("atom.xml").unwrap())
+            let data: String = String::from_utf8_lossy(&fs::read("test-files/atom.xml").unwrap())
                 .parse()
                 .unwrap();
             let obj = URLObject {
@@ -579,7 +579,6 @@ pub mod rss_parser {
         }
 
         #[tokio::test]
-        #[ignore]
         async fn test_get_url_works() {
             // a url pointing to the raw data of the atom.xml file hosted on github
             let text = from_url(
@@ -592,7 +591,6 @@ pub mod rss_parser {
         }
 
         #[tokio::test]
-        #[ignore]
         async fn test_get_feed_works() {
             // this should be a urls pointing to .xml files online
             let obj = URLObject {
