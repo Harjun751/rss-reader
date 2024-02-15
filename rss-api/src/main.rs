@@ -1,3 +1,6 @@
+mod logger;
+mod scraper;
+
 use axum::{
     debug_handler,
     extract::{Json, Query, State},
@@ -5,11 +8,13 @@ use axum::{
     routing::{get, post},
     Router,
 };
-use rss_api::{database::DatabaseConnection, rss_parser, Post};
+use rss_api::{database::DatabaseConnection, rss_parser, Channel, Post};
 use serde::Deserialize;
 use std::collections::HashMap;
-
-mod scraper;
+use tower::ServiceBuilder;
+use tower_http::trace::TraceLayer;
+use tracing::error;
+use tracing_subscriber::prelude::*;
 
 #[derive(Clone)]
 struct Appstate {
@@ -18,6 +23,9 @@ struct Appstate {
 
 #[tokio::main]
 async fn main() {
+    tracing_subscriber::registry()
+        .with(logger::FileLogger)
+        .init();
     let dbconn = DatabaseConnection::new();
 
     let app = Router::new()
@@ -25,7 +33,9 @@ async fn main() {
         .route("/feed", get(feed))
         .route("/sub", post(sub))
         .route("/read", post(read))
-        .with_state(Appstate { dbconn });
+        .route("/channel", get(get_channels).post(post_channel))
+        .with_state(Appstate { dbconn })
+        .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()));
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
@@ -36,8 +46,8 @@ async fn all_posts(
     Query(params): Query<HashMap<String, String>>,
     State(state): State<Appstate>,
 ) -> Result<Json<Vec<Post>>, (StatusCode, String)> {
-    let uid = params.get("id").map(|x| x.parse::<u64>());
-    let uid = match uid {
+    let cid = params.get("id").map(|x| x.parse::<u64>());
+    let cid = match cid {
         Some(Ok(val)) => val,
         _ => return Err((StatusCode::BAD_REQUEST, "Invalid id passed!".to_string())),
     };
@@ -52,7 +62,7 @@ async fn all_posts(
         }
     };
 
-    let res = state.dbconn.get_post_list(uid, offset).await;
+    let res = state.dbconn.get_post_list(cid, offset).await;
 
     match res {
         Ok(val) => Ok(Json(val)),
@@ -96,7 +106,7 @@ async fn read(
                 println!("Debug: {e}");
                 return Err((
                     StatusCode::INTERNAL_SERVER_ERROR,
-                    "Error resource don't exist".to_string(),
+                    "Error resource doesn't exist".to_string(),
                 ));
             }
         }
@@ -120,20 +130,20 @@ async fn read(
 // Sub requires a post body that deserializes into the Subscription struct
 #[derive(Deserialize)]
 struct Subscription {
-    uid: u32,
+    cid: u32,
     publisher: String,
 }
 async fn sub(
     State(state): State<Appstate>,
     Json(payload): Json<Subscription>,
 ) -> Result<(), (StatusCode, String)> {
-    let res = state.dbconn.subscribe(payload.uid, payload.publisher).await;
+    let res = state.dbconn.subscribe(payload.cid, payload.publisher).await;
     match res {
         Ok(()) => Ok(()),
         Err(e) => {
             // LOG THIS!
             // It would be an error in mysql.
-            println!("DEBUG: {e}");
+            error!(e);
             Err((
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "We had some issues with the request...".to_string(),
@@ -150,7 +160,7 @@ async fn feed(
     Query(params): Query<HashMap<String, String>>,
 ) -> Result<Json<Vec<Post>>, (StatusCode, String)> {
     let res = params.get("id").map(|x| x.parse::<u64>());
-    let uid = match res {
+    let cid = match res {
         Some(Ok(val)) => val,
         _ => {
             return Err((
@@ -161,7 +171,7 @@ async fn feed(
     };
 
     // get the list of all publications user is subscribed to
-    let urls = state.dbconn.get_subbed(uid).await.unwrap();
+    let urls = state.dbconn.get_subbed(cid).await.unwrap();
 
     // using all the rss links, get all the posts from the xml feeds
     let data = rss_parser::get_whole_feed(urls).await;
@@ -177,19 +187,66 @@ async fn feed(
     Ok(Json(data))
 }
 
-// TODO:
-// THINK ABOUT HOW MUCH DATA TO RETURN ON THE FEED PAGE. YOU DON'T NEED ALL OF THAT.
+#[debug_handler]
+async fn get_channels(
+    State(state): State<Appstate>,
+    Query(params): Query<HashMap<String, String>>,
+) -> Result<Json<Vec<Channel>>, (StatusCode, String)> {
+    let uid = match params.get("uid").map(|x| x.parse::<u64>()) {
+        Some(Ok(val)) => val,
+        _ => {
+            return Err((
+                StatusCode::BAD_REQUEST,
+                "Missing required `uid` field".to_string(),
+            ))
+        }
+    };
 
+    match state.dbconn.get_channels_for_user(uid).await {
+        Ok(channels) => Ok(Json(channels)),
+        Err(e) => {
+            // LOG THIS!
+            println!("DEBUG: {e}");
+            Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "We had an issue with the request..".to_string(),
+            ))
+        }
+    }
+}
+
+#[derive(Deserialize)]
+struct CreateChannel {
+    uid: u64,
+    name: String,
+}
+
+#[debug_handler]
+async fn post_channel(
+    State(state): State<Appstate>,
+    Json(payload): Json<CreateChannel>,
+) -> Result<(), (StatusCode, String)> {
+    match state
+        .dbconn
+        .insert_channel_for_user(payload.uid, payload.name)
+        .await
+    {
+        Ok(_) => Ok(()),
+        Err(e) => {
+            // LOG THIS!
+            println!("DEBUG: {e}");
+            Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "We had an issue with the request..".to_string(),
+            ))
+        }
+    }
+}
+
+// TODO:
 // STANDARDIZE QUERY STRING, URL PARAMS.
 
-// PUBLISHER WITH SEPARATE FEEDS? PUBLICATIONS HAVE MULTIPLE RSS FEEDS: INCLUDE *NAME* -> IT'S IMPORTANT!!!
-// -- Kind of already works, just need to make name field required
-// -- question is, get name from atom/rss feed or provide?
-
 // FURTHER IN THE FUTURE: AUTHENTICATION?
-// CHANNELS FOR EACH USER?
-//----- shouldn't be too hard of a fix, change user_pubs to channel_pubs
-//----- each uid has 0* channels
-//----- each channel has an id, and is linked to publications via channel pubs
 // IMPLEMENT LOGGING
 // FIREFOX READVIEW FALLBACK
+// END TODO

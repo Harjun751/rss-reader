@@ -18,6 +18,12 @@ pub struct Post {
     pid: u64,
 }
 
+#[derive(Debug, Serialize)]
+pub struct Channel {
+    cid: u64,
+    name: String,
+}
+
 impl Post {
     pub fn new() {}
 

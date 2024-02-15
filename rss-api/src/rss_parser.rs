@@ -342,8 +342,54 @@ pub fn match_date(date: &str) -> Option<DateTime<Utc>> {
             Err(_) => (),
         };
     }
-
     None
+}
+
+// validate feed takes in a url pointing to an xml.
+// it returns the feed name
+pub async fn validate_feed(url: &str) -> Result<String, Box<dyn Error>> {
+    let val = reqwest::get(url).await?.text().await?;
+    let doc = roxmltree::Document::parse(&val)?;
+
+    // look for version in rss
+    let ver = doc
+        .descendants()
+        .find(|n| n.has_tag_name("rss"))
+        .map(|n| n.attribute("version"));
+
+    match ver {
+        Some(Some(i)) if i == "2.0" || i == "0.92" || i == "0.91" => {
+            // get the feed title and return
+            let title = &doc
+                .descendants()
+                .find(|x| x.has_tag_name("title"))
+                .map(|x| x.text());
+            if let Some(Some(val)) = title {
+                Ok(val.to_string())
+            } else {
+                Err("Malformed feed format!".to_string().into())
+            }
+        }
+        _ => {
+            // it may be an atom feed, let's check.
+            let feed = &doc.descendants().find(|x| x.has_tag_name("feed"));
+            match feed {
+                Some(_) => {
+                    // get the feed title & return
+                    let title = &doc
+                        .descendants()
+                        .find(|x| x.has_tag_name("title"))
+                        .map(|x| x.text());
+                    if let Some(Some(val)) = title {
+                        Ok(val.to_string())
+                    } else {
+                        Err("Malformed feed format!".to_string().into())
+                    }
+                }
+                None => Err("Unrecognized feed format!".to_string().into()),
+            }
+        }
+    }
 }
 
 #[cfg(test)]

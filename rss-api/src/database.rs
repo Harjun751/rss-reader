@@ -1,4 +1,4 @@
-use crate::{Post, URLObject};
+use crate::{rss_parser::validate_feed, Channel, Post, URLObject};
 use chrono::NaiveDateTime;
 use mysql::{params, prelude::Queryable, Pool};
 use std::error::Error;
@@ -14,37 +14,43 @@ impl DatabaseConnection {
         DatabaseConnection { pool }
     }
 
-    pub async fn subscribe(&self, uid: u32, publisher: String) -> Result<(), mysql::error::Error> {
+    pub async fn subscribe(&self, cid: u32, url: String) -> Result<(), Box<dyn Error>> {
         let mut conn = self.pool.get_conn().unwrap();
-        let query = conn.prep("Select pid from publisher where url=:publisher")?;
+        let query = conn.prep("Select pid from publisher where url=:url")?;
 
         let res: Result<Option<u64>, mysql::error::Error> =
-            conn.exec_first(query, params! {"publisher"=>&publisher});
+            conn.exec_first(query, params! {"url"=>&url});
 
         let id = match res {
             Ok(Some(id)) => id,
             Ok(None) => {
-                let query = conn.prep("INSERT INTO publisher(url) VALUES (:publisher)")?;
-                let res = conn.exec_drop(query, params! {"publisher" => publisher});
+                let name = validate_feed(&url).await?;
+                let query = conn.prep("INSERT INTO publisher(url, name) VALUES (:url, :name)")?;
+                let res = conn.exec_drop(query, params! {"url" => &url, "name" => name});
                 match res {
                     Ok(()) => conn.last_insert_id(),
-                    Err(e) => return Err(e),
+                    Err(e) => return Err(e.into()),
                 }
             }
-            Err(e) => return Err(e),
+            Err(e) => return Err(e.into()),
         };
 
         // STEP 2: String: USE PID TO CREATE
-        let query = conn.prep("INSERT IGNORE into user_pubs(uid, pid) VALUES (:uid, :pid)")?;
-        conn.exec_drop(query, params! {"uid" => uid, "pid"=>id})
+        let query = conn.prep("INSERT IGNORE into subscription(cid, pid) VALUES (:cid, :pid)")?;
+        let res = conn.exec_drop(query, params! {"cid" => cid, "pid"=>id});
+        if let Err(e) = res {
+            Err(e.into())
+        } else {
+            Ok(())
+        }
     }
 
-    pub async fn get_subbed(&self, uid: u64) -> Result<Vec<URLObject>, mysql::Error> {
+    pub async fn get_subbed(&self, cid: u64) -> Result<Vec<URLObject>, mysql::Error> {
         let mut conn = self.pool.get_conn().unwrap();
 
-        let query = conn.prep("SELECT url, user_pubs.pid from user_pubs INNER JOIN publisher on user_pubs.pid=publisher.pid where uid=:uid")?;
+        let query = conn.prep("SELECT url, subscription.pid from subscription INNER JOIN publisher on subscription.pid=publisher.pid where cid=:cid")?;
 
-        conn.exec_map(query, params! {"uid" => uid}, |(url, pid)| URLObject {
+        conn.exec_map(query, params! {"cid" => cid}, |(url, pid)| URLObject {
             url,
             pid,
         })
@@ -67,6 +73,7 @@ impl DatabaseConnection {
                             Some(d) => {
                                 format!("{}", d.format("%Y-%m-%d %H:%M:%S"))
                             },
+                            // TODO: ERROR HANDLING HERE LOL. Also check how null values are handled. Are they placed in front?
                             None => "1992-01-01".to_string()
                         }
                     },
@@ -86,21 +93,6 @@ impl DatabaseConnection {
     ) -> Result<Post, Box<dyn Error>> {
         let mut conn = self.pool.get_conn().unwrap();
 
-        // let (query, params) = match id {
-        //     Some(i) => {
-        //         let q = conn.prep("SELECT * from post where id=:id")?;
-        //         let p = params! { "id" => i };
-        //         (q, p)
-        //     }
-        //     None => match url {
-        //         Some(u) => {
-        //             let q = conn.prep("SELECT * from post where url=:url")?;
-        //             let p = params! {"url" => u};
-        //             (q, p)
-        //         }
-        //         None => return Err("Invalid parameters.".to_string().into()),
-        //     },
-        // };
         let (query, params) = match id {
             Some(i) => {
                 let q = conn.prep("SELECT * from post where id=:id")?;
@@ -161,14 +153,14 @@ impl DatabaseConnection {
         }
     }
 
-    pub async fn get_post_list(&self, uid: u64, offset: u64) -> Result<Vec<Post>, mysql::Error> {
+    pub async fn get_post_list(&self, cid: u64, offset: u64) -> Result<Vec<Post>, mysql::Error> {
         let mut conn = self.pool.get_conn().unwrap();
 
         let query = conn.prep(
             " \
                 SELECT id, url, title, date_added, description, image, post.pid FROM post \
-                INNER JOIN user_pubs ON post.pid=user_pubs.pid \
-                WHERE uid=:uid \
+                INNER JOIN subscription ON post.pid=subscription.pid \
+                WHERE cid=:cid \
                 ORDER BY date_added DESC \
                 LIMIT :offset, 10;
                 ",
@@ -176,7 +168,7 @@ impl DatabaseConnection {
 
         conn.exec_map(
             query,
-            params! {"uid" => uid, "offset" => offset},
+            params! {"cid" => cid, "offset" => offset},
             |(id, url, title, date_added, description, image, pid): (
                 u64,
                 String,
@@ -203,6 +195,35 @@ impl DatabaseConnection {
                 }
             },
         )
+    }
+
+    pub async fn get_channels_for_user(&self, uid: u64) -> Result<Vec<Channel>, Box<dyn Error>> {
+        let mut conn = self.pool.get_conn()?;
+
+        let query = conn.prep("SELECT cid, name FROM channel where uid=:uid")?;
+
+        let res = conn.exec_map(
+            query,
+            params! {"uid" => uid},
+            |(cid, name): (u64, String)| Channel { cid, name },
+        );
+
+        match res {
+            Ok(val) => Ok(val),
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    pub async fn insert_channel_for_user(
+        &self,
+        uid: u64,
+        name: String,
+    ) -> Result<(), mysql::error::Error> {
+        let mut conn = self.pool.get_conn()?;
+
+        let query = conn.prep("INSERT INTO channel (uid, name) VALUES (:uid, :name)")?;
+
+        conn.exec_drop(query, params! {"uid" => uid, "name" => name})
     }
 }
 
