@@ -1,3 +1,4 @@
+use crate::logger::DetailedError;
 use crate::{rss_parser::validate_feed, Channel, Post, URLObject};
 use chrono::NaiveDateTime;
 use mysql::{params, prelude::Queryable, Pool};
@@ -14,9 +15,12 @@ impl DatabaseConnection {
         DatabaseConnection { pool }
     }
 
-    pub async fn subscribe(&self, cid: u32, url: String) -> Result<(), Box<dyn Error>> {
+    pub async fn subscribe(&self, cid: u64, url: String) -> Result<(), DetailedError> {
         let mut conn = self.pool.get_conn().unwrap();
-        let query = conn.prep("Select pid from publisher where url=:url")?;
+        let query = match conn.prep("Select pid from publisher where url=:url") {
+            Ok(val) => val,
+            Err(e) => return Err(DetailedError::new(Box::new(e))),
+        };
 
         let res: Result<Option<u64>, mysql::error::Error> =
             conn.exec_first(query, params! {"url"=>&url});
@@ -24,24 +28,48 @@ impl DatabaseConnection {
         let id = match res {
             Ok(Some(id)) => id,
             Ok(None) => {
-                let name = validate_feed(&url).await?;
-                let query = conn.prep("INSERT INTO publisher(url, name) VALUES (:url, :name)")?;
+                let name = match validate_feed(&url).await {
+                    Ok(val) => val,
+                    Err(e) => return Err(DetailedError::new(e)),
+                };
+                let query = match conn.prep("INSERT INTO publisher(url, name) VALUES (:url, :name)")
+                {
+                    Ok(val) => val,
+                    Err(e) => return Err(DetailedError::new(Box::new(e))),
+                };
                 let res = conn.exec_drop(query, params! {"url" => &url, "name" => name});
                 match res {
                     Ok(()) => conn.last_insert_id(),
-                    Err(e) => return Err(e.into()),
+                    Err(e) => return Err(DetailedError::new(Box::new(e))),
                 }
             }
-            Err(e) => return Err(e.into()),
+            Err(e) => return Err(DetailedError::new(Box::new(e))),
         };
 
         // STEP 2: String: USE PID TO CREATE
-        let query = conn.prep("INSERT IGNORE into subscription(cid, pid) VALUES (:cid, :pid)")?;
+        let query = match conn.prep("INSERT IGNORE into subscription(cid, pid) VALUES (:cid, :pid)")
+        {
+            Ok(val) => val,
+            Err(e) => return Err(DetailedError::new(Box::new(e))),
+        };
         let res = conn.exec_drop(query, params! {"cid" => cid, "pid"=>id});
         if let Err(e) = res {
-            Err(e.into())
+            Err(DetailedError::new(Box::new(e)))
         } else {
             Ok(())
+        }
+    }
+
+    pub async fn unsubscribe(&self, pid: u64, cid: u64) -> Result<(), DetailedError> {
+        let mut conn = self.pool.get_conn().unwrap();
+        let query = match conn.prep("Delete from subscription where pid=:pid and cid=:cid") {
+            Ok(val) => val,
+            Err(e) => return Err(DetailedError::new(Box::new(e))),
+        };
+
+        match conn.exec_drop(query, params! {"pid"=>pid, "cid" => cid}) {
+            Ok(_) => Ok(()),
+            Err(e) => return Err(DetailedError::new(Box::new(e))),
         }
     }
 
@@ -224,6 +252,18 @@ impl DatabaseConnection {
         let query = conn.prep("INSERT INTO channel (uid, name) VALUES (:uid, :name)")?;
 
         conn.exec_drop(query, params! {"uid" => uid, "name" => name})
+    }
+
+    pub async fn delete_channel_for_user(
+        &self,
+        uid: u64,
+        cid: u64,
+    ) -> Result<(), mysql::error::Error> {
+        let mut conn = self.pool.get_conn()?;
+
+        let query = conn.prep("DELETE FROM channel WHERE uid=:uid and cid=:cid")?;
+
+        conn.exec_drop(query, params! {"uid" => uid, "cid" => cid})
     }
 }
 

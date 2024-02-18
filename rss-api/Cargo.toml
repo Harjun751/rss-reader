@@ -15,7 +15,8 @@ reqwest = "0.11.24"
 chrono = { version = "0.4.33", features = ["serde", "alloc"] }
 scraper = "0.18.1"
 mysql_common = { version = "0.30.6", features = ["chrono"] }
-tower-http = { version = "0.5.1", features = ["trace"] }
+tower-http = { version = "0.5.1", features = ["trace", "cors"] }
 tower = "0.4.13"
 tracing-subscriber = { version = "0.3.18", features = ["fmt"] }
 tracing = "0.1.40"
+http = "1.0.0"

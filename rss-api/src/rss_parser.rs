@@ -12,7 +12,9 @@ pub async fn get_whole_feed(urls: Vec<URLObject>) -> Vec<Post> {
     for url in urls {
         let vector = Arc::clone(&vec);
         let handle = tokio::spawn(async move {
+            // println!("getting data from {}...", &url.url);
             let data = from_url(&url.url).await;
+            // println!("Finished getting data from {}!", &url.url);
             let data = match data {
                 Ok(val) => val,
                 Err(e) => {
@@ -23,11 +25,13 @@ pub async fn get_whole_feed(urls: Vec<URLObject>) -> Vec<Post> {
                     return;
                 }
             };
+            // println!("parsing feed for {}...", &url.url);
             let res = parse_feed(&data, &url).await;
             match res {
                 Ok(mut posts) => {
                     let mut vector = vector.lock().unwrap();
                     vector.append(&mut posts);
+                    // println!("Finished parsing feed for {}!", &url.url);
                 }
                 // Again, we don't have to error here as other rss feeds may still parse well => may be ill-formed xml
                 // LOG THIS!
@@ -169,11 +173,17 @@ fn parse_rss<'a>(
         let description = match description {
             Some(Some(t)) => t.to_owned(),
             _ => {
-                return Err(
-                    "Missing required field description, or it's in the incorrect format!"
-                        .to_string()
-                        .into(),
-                )
+                // Normally, I'd return an error here. But, washington post has some ill-formed rss, man. So I've decided in these cases I'll put a placeholder text and continue as normal.
+                // Quoting the great master cormac mccarthy
+                "Binglebop wandered alone. He saw brook trout in the streams in the mountains. He could see them standing in the amber current where the white \
+                edges of their fins wimpled softly in the flow. They smelled of moss in his hand. Polished and muscular and torsional. On their backs he saw \
+                vermiculate patterns that were maps of the world in its becoming. Maps and mazes. Of a thing which could not be put back. Not be made right again. \
+                In the deep glens where they lived all things were older than man and they hummed of mystery.".to_string()
+                // return Err(
+                //     "Missing required field description, or it's in the incorrect format!"
+                //         .to_string()
+                //         .into(),
+                // )
             }
         };
 

@@ -1,0 +1,17 @@
+[package]
+name = "rss-frontend"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+chrono = { version = "0.4.34", features = ["serde"] }
+dioxus = "0.4.3"
+dioxus-router = "0.4.3"
+dioxus-web = "0.4.3"
+env_logger = "0.11.2"
+form_urlencoded = "1.2.1"
+log = "0.4.20"
+reqwest = { version = "0.11.24", features = ["json"] }
+serde = "1.0.196"

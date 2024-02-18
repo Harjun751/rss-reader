@@ -2,6 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::Serialize;
 
 pub mod database;
+pub mod logger;
 pub mod rss_parser;
 
 #[derive(Debug, Serialize)]
@@ -52,6 +53,7 @@ impl Post {
     }
 }
 
+#[derive(Serialize)]
 pub struct URLObject {
     url: String,
     pid: u64,
@@ -62,6 +64,11 @@ mod integrated_tests {
     use super::*;
     use database::DatabaseConnection;
     use rss_parser;
+
+    #[test]
+    fn macro_test() {
+        // let params = log_params!("unit", 42);
+    }
 
     #[tokio::test]
     async fn test_get_feed_insert_data_to_db() {
