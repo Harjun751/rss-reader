@@ -8,8 +8,7 @@ use axum::{
     routing::{get, post},
     Router,
 };
-use http::Method;
-use rss_api::{database::DatabaseConnection, rss_parser, Channel, Post, URLObject};
+use rss_api::{database::DatabaseConnection, rss_parser, Channel, Post, Subscription};
 use serde::Deserialize;
 use std::collections::HashMap;
 use tower::ServiceBuilder;
@@ -142,21 +141,11 @@ async fn read(
     }
 }
 
-// Sub requires a post body that deserializes into the Subscription struct
-#[derive(Deserialize)]
-struct Subscription {
-    cid: u64,
-    pid: Option<u64>,
-    publisher: Option<String>,
-}
 async fn sub(
     State(state): State<Appstate>,
     Json(payload): Json<Subscription>,
 ) -> Result<(), (StatusCode, String)> {
-    let res = state
-        .dbconn
-        .subscribe(payload.cid, payload.publisher.unwrap())
-        .await;
+    let res = state.dbconn.subscribe(payload.cid, payload.url).await;
     match res {
         Ok(()) => Ok(()),
         Err(e) => {
@@ -174,12 +163,9 @@ async fn unsub(
     State(state): State<Appstate>,
     Json(payload): Json<Subscription>,
 ) -> Result<(), (StatusCode, String)> {
-    // TODO: INVESTIGATE THIS BUG
-    println!("pid: {}", payload.pid.unwrap());
-    println!("cid: {}", payload.cid);
     let res = state
         .dbconn
-        .unsubscribe(payload.cid, payload.pid.unwrap())
+        .unsubscribe(payload.pid.unwrap(), payload.cid)
         .await;
     match res {
         Ok(()) => Ok(()),
@@ -198,7 +184,7 @@ async fn unsub(
 async fn get_subs(
     State(state): State<Appstate>,
     Query(params): Query<HashMap<String, String>>,
-) -> Result<Json<Vec<URLObject>>, (StatusCode, String)> {
+) -> Result<Json<Vec<Subscription>>, (StatusCode, String)> {
     let res = params.get("cid").map(|x| x.parse::<u64>());
     let cid = match res {
         Some(Ok(val)) => val,
@@ -354,11 +340,9 @@ async fn delete_channel(
 }
 
 // TODO:
-// STRIP HTML AND MAKE CUSTOM DESCRIPTION FIELD
+// STRIP HTML FROM TEXT
 
 // FURTHER IN THE FUTURE: AUTHENTICATION?
-
-// FIND OUT WHY DELETE SUBSCRIPTION DOESN'T WORK!!!!!!!!
 
 // FALLBACK:
 // I can't implement readerview myself

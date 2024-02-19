@@ -5,15 +5,15 @@ use std::error::Error;
 use std::sync::{Arc, Mutex};
 
 /// get_whole_feed expects a list of urls to get feed data from
-pub async fn get_whole_feed(urls: Vec<URLObject>) -> Vec<Post> {
+pub async fn get_whole_feed(urls: Vec<Subscription>) -> Vec<Post> {
     let vec: Arc<Mutex<Vec<Post>>> = Arc::new(Mutex::new(Vec::new()));
     let mut handles = vec![];
 
-    for url in urls {
+    for sub in urls {
         let vector = Arc::clone(&vec);
         let handle = tokio::spawn(async move {
             // println!("getting data from {}...", &url.url);
-            let data = from_url(&url.url).await;
+            let data = from_url(&sub.url).await;
             // println!("Finished getting data from {}!", &url.url);
             let data = match data {
                 Ok(val) => val,
@@ -26,7 +26,7 @@ pub async fn get_whole_feed(urls: Vec<URLObject>) -> Vec<Post> {
                 }
             };
             // println!("parsing feed for {}...", &url.url);
-            let res = parse_feed(&data, &url).await;
+            let res = parse_feed(&data, &sub).await;
             match res {
                 Ok(mut posts) => {
                     let mut vector = vector.lock().unwrap();
@@ -35,7 +35,7 @@ pub async fn get_whole_feed(urls: Vec<URLObject>) -> Vec<Post> {
                 }
                 // Again, we don't have to error here as other rss feeds may still parse well => may be ill-formed xml
                 // LOG THIS!
-                Err(msg) => println!("DEBUG: unable to parse {}. \n Error: {}", url.url, msg),
+                Err(msg) => println!("DEBUG: unable to parse {}. \n Error: {}", sub.url, msg),
             }
         });
         handles.push(handle);
@@ -71,7 +71,10 @@ pub async fn from_url(url: &str) -> Result<String, reqwest::Error> {
 /// parse_feed takes in a slice of data representing the xml of the feed
 /// it then checks if the file is a valid rss/atom feed, if not it just tries both.
 /// Returns a vector of posts in the feed, or an Error
-async fn parse_feed<'a>(data: &'a str, url: &URLObject) -> Result<Vec<Post>, Box<dyn Error>> {
+async fn parse_feed<'a>(
+    data: &'a str,
+    publisher: &Subscription,
+) -> Result<Vec<Post>, Box<dyn Error>> {
     let doc = roxmltree::Document::parse(data);
     let doc = match doc {
         Ok(val) => val,
@@ -83,28 +86,30 @@ async fn parse_feed<'a>(data: &'a str, url: &URLObject) -> Result<Vec<Post>, Box
         .map(|n| n.attribute("version"));
 
     match ver {
-        Some(Some(i)) if i == "2.0" || i == "0.92" || i == "0.91" => parse_rss(doc, url),
+        Some(Some(i)) if i == "2.0" || i == "0.92" || i == "0.91" => parse_rss(doc, publisher),
         _ => {
             // try to find the feed element that signifies atom
             let feed = &doc.descendants().find(|x| x.has_tag_name("feed"));
             if let Some(_) = feed {
-                parse_atom(doc, url)
+                parse_atom(doc, publisher)
             } else {
                 // hail mary - run rss then parse atom cos we ball like that
-                let res = parse_rss(doc, url);
+                let res = parse_rss(doc, publisher);
                 match res {
                     Ok(val) => Ok(val),
                     // we read in the data again
                     // we choose to do this instead of using a borrow because i'm too lazy to refactor parse_xxx to take in a borrow
                     // it's also more performant (FAKE)
-                    Err(_) => match parse_atom(roxmltree::Document::parse(data).unwrap(), url) {
-                        Ok(val) => Ok(val),
-                        Err(_) => {
-                            return Err("Invalid feed format! (Tried running hail mary)"
-                                .to_string()
-                                .into())
+                    Err(_) => {
+                        match parse_atom(roxmltree::Document::parse(data).unwrap(), publisher) {
+                            Ok(val) => Ok(val),
+                            Err(_) => {
+                                return Err("Invalid feed format! (Tried running hail mary)"
+                                    .to_string()
+                                    .into())
+                            }
                         }
-                    },
+                    }
                 }
             }
         }
@@ -114,7 +119,7 @@ async fn parse_feed<'a>(data: &'a str, url: &URLObject) -> Result<Vec<Post>, Box
 /// parse_rss returns a vector of posts or an error string
 fn parse_rss<'a>(
     doc: roxmltree::Document,
-    publisher: &URLObject,
+    publisher: &Subscription,
 ) -> Result<Vec<Post>, Box<dyn Error>> {
     let mut vec: Vec<Post> = Vec::new();
     let items = doc.descendants().filter(|x| x.has_tag_name("item"));
@@ -162,29 +167,7 @@ fn parse_rss<'a>(
 
         let date = match date {
             Some(Some(text)) => match_date(text),
-            _ => None,
-        };
-
-        let description = nodes
-            .iter()
-            .find(|x| x.has_tag_name("description"))
-            .map(|x| x.text());
-
-        let description = match description {
-            Some(Some(t)) => t.to_owned(),
-            _ => {
-                // Normally, I'd return an error here. But, washington post has some ill-formed rss, man. So I've decided in these cases I'll put a placeholder text and continue as normal.
-                // Quoting the great master cormac mccarthy
-                "Binglebop wandered alone. He saw brook trout in the streams in the mountains. He could see them standing in the amber current where the white \
-                edges of their fins wimpled softly in the flow. They smelled of moss in his hand. Polished and muscular and torsional. On their backs he saw \
-                vermiculate patterns that were maps of the world in its becoming. Maps and mazes. Of a thing which could not be put back. Not be made right again. \
-                In the deep glens where they lived all things were older than man and they hummed of mystery.".to_string()
-                // return Err(
-                //     "Missing required field description, or it's in the incorrect format!"
-                //         .to_string()
-                //         .into(),
-                // )
-            }
+            _ => Utc::now(),
         };
 
         let content = nodes
@@ -207,6 +190,25 @@ fn parse_rss<'a>(
             }
         };
 
+        let description = nodes
+            .iter()
+            .find(|x| x.has_tag_name("description"))
+            .map(|x| x.text());
+
+        let description = match description {
+            Some(Some(t)) => t.to_owned(),
+            _ => {
+                // Create the description field from content if possible
+                match &content {
+                    Some(val) => {
+                        let len = std::cmp::min(100, val.len());
+                        val[0..len].to_string()
+                    }
+                    None => "[No description provided]".to_string(),
+                }
+            }
+        };
+
         let enclosure = nodes.iter().find(|x| x.has_tag_name("enclosure"));
 
         let enclosure: Option<String> = match enclosure {
@@ -215,14 +217,15 @@ fn parse_rss<'a>(
         };
 
         let post = Post {
-            id: None,
+            // placeholder id value - won't be inserted so we don't have to worry
+            id: 999999999,
             title,
             link,
             date,
-            description: Some(description),
+            description: description,
             content,
             enclosure,
-            pid: publisher.pid,
+            pid: publisher.pid.unwrap(),
         };
         vec.push(post);
     }
@@ -232,7 +235,7 @@ fn parse_rss<'a>(
 /// parse atom returns a vector of posts or an error string.
 fn parse_atom<'a>(
     doc: roxmltree::Document,
-    publisher: &URLObject,
+    publisher: &Subscription,
 ) -> Result<Vec<Post>, Box<dyn Error>> {
     let mut vec: Vec<Post> = Vec::new();
 
@@ -279,25 +282,15 @@ fn parse_atom<'a>(
             .find(|x| x.has_tag_name("published"))
             .map(|x| x.text());
 
-        let date: Option<DateTime<Utc>> = match date {
+        let date: DateTime<Utc> = match date {
             Some(Some(d)) => {
                 let res = DateTime::parse_from_rfc3339(d);
                 match res {
-                    Ok(dt) => Some(dt.to_utc()),
-                    Err(_) => return Err("Invalid date format!".to_string().into()),
+                    Ok(dt) => dt.to_utc(),
+                    Err(_) => Utc::now(),
                 }
             }
-            _ => None,
-        };
-
-        let description = nodes
-            .iter()
-            .find(|x| x.has_tag_name("summary"))
-            .map(|x| x.text());
-
-        let description = match description {
-            Some(Some(t)) => Some(t.to_owned()),
-            _ => None,
+            _ => Utc::now(),
         };
 
         let content = nodes
@@ -310,22 +303,41 @@ fn parse_atom<'a>(
             _ => None,
         };
 
+        let description = nodes
+            .iter()
+            .find(|x| x.has_tag_name("description"))
+            .map(|x| x.text());
+
+        let description = match description {
+            Some(Some(t)) => t.to_owned(),
+            _ => {
+                // Create the description field from content if possible
+                match &content {
+                    Some(val) => {
+                        let len = std::cmp::min(100, val.len());
+                        val[0..len].to_string()
+                    }
+                    None => "[No description provided]".to_string(),
+                }
+            }
+        };
+
         let post = Post {
-            id: None,
+            id: 9999999,
             title,
             link,
             date,
             description,
             content,
             enclosure: None,
-            pid: publisher.pid,
+            pid: publisher.pid.unwrap(),
         };
         vec.push(post);
     }
     Ok(vec)
 }
 
-pub fn match_date(date: &str) -> Option<DateTime<Utc>> {
+pub fn match_date(date: &str) -> DateTime<Utc> {
     let possible_dt_formats = vec![
         "%a, %d %b %Y %H:%M:%S".to_string(),
         "%a, %d %b %y %H:%M:%S".to_string(),
@@ -338,7 +350,7 @@ pub fn match_date(date: &str) -> Option<DateTime<Utc>> {
         dtzfmt.push_str(" %z");
         let val = DateTime::parse_from_str(date, &dtzfmt);
         match val {
-            Ok(val) => return Some(val.to_utc()),
+            Ok(val) => return val.to_utc(),
             Err(_) => (),
         };
     }
@@ -348,11 +360,12 @@ pub fn match_date(date: &str) -> Option<DateTime<Utc>> {
         dtzfmt.push_str(" %Z");
         let val = NaiveDateTime::parse_from_str(date, &dtzfmt);
         match val {
-            Ok(val) => return Some(Utc.from_utc_datetime(&val)),
+            Ok(val) => return Utc.from_utc_datetime(&val),
             Err(_) => (),
         };
     }
-    None
+    // if all else fails, return now
+    Utc::now()
 }
 
 // validate feed takes in a url pointing to an xml.
@@ -413,9 +426,10 @@ mod rss_tests {
         let data: String = String::from_utf8_lossy(&fs::read("test-files/rss-20.xml").unwrap())
             .parse()
             .unwrap();
-        let obj = URLObject {
+        let obj = Subscription {
             url: "rss-20.xml".to_string(),
-            pid: 3,
+            pid: Some(1),
+            cid: 1,
         };
         let res = parse_feed(&data, &obj).await;
         match res {
@@ -438,16 +452,17 @@ mod rss_tests {
         let data: String = String::from_utf8_lossy(&fs::read("test-files/rss-91.xml").unwrap())
             .parse()
             .unwrap();
-        let obj = URLObject {
+        let obj = Subscription {
             url: "rss-91.xml".to_string(),
-            pid: 4,
+            pid: Some(1),
+            cid: 1,
         };
         let res = parse_feed(&data, &obj).await;
         match res {
             Ok(vec) => {
                 let first = &vec[0];
                 assert_eq!(first.title, "Giving the world a pluggable Gnutella");
-                assert_eq!(first.description.as_ref().unwrap(), "WorldOS is a framework on which to build programs that work like Freenet or Gnutella -allowing distributed applications using peer-to-peer routing.");
+                assert_eq!(first.description, "WorldOS is a framework on which to build programs that work like Freenet or Gnutella -allowing distributed applications using peer-to-peer routing.");
             }
             Err(error) => {
                 println!("{error}");
@@ -461,16 +476,17 @@ mod rss_tests {
         let data: String = String::from_utf8_lossy(&fs::read("test-files/rss-92.xml").unwrap())
             .parse()
             .unwrap();
-        let obj = URLObject {
+        let obj = Subscription {
             url: "rss-92.xml".to_string(),
-            pid: 5,
+            pid: Some(1),
+            cid: 1,
         };
         let res = parse_feed(&data, &obj).await;
         match res {
             Ok(vec) => {
                 let first = &vec[0];
                 assert_eq!(first.title, "Cats and Dogs Form Unlikely Friendship");
-                assert_eq!(first.description.as_ref().unwrap(), "In a heartwarming turn of events, a cat and a dog were spotted playing together in the park, proving that friendships can transcend species.");
+                assert_eq!(first.description, "In a heartwarming turn of events, a cat and a dog were spotted playing together in the park, proving that friendships can transcend species.");
             }
             Err(error) => {
                 println!("{error}");
@@ -484,9 +500,10 @@ mod rss_tests {
         let data: String = String::from_utf8_lossy(&fs::read("test-files/atom.xml").unwrap())
             .parse()
             .unwrap();
-        let obj = URLObject {
+        let obj = Subscription {
             url: "atom.xml".to_string(),
-            pid: 3,
+            pid: Some(1),
+            cid: 1,
         };
         let res = parse_feed(&data, &obj).await;
         match res {
@@ -517,23 +534,17 @@ mod rss_tests {
     #[tokio::test]
     async fn test_get_feed_works() {
         // this should be a urls pointing to .xml files online
-        let obj = URLObject {
-            url: "https://raw.githubusercontent.com/Harjun751/rss-reader/main/rss-api/atom.xml"
+        let obj = Subscription {
+            url: "https://raw.githubusercontent.com/Harjun751/rss-reader/main/rss-api/test-files/atom.xml"
                 .to_string(),
-            pid: 6,
+            pid: Some(1),
+            cid: 1
         };
-        let urls: Vec<URLObject> = vec![obj];
+        let urls: Vec<Subscription> = vec![obj];
         let posts = get_whole_feed(urls).await;
         let post = posts.iter().find(|x| x.title == "Google’s use of student data could effectively ban Chromebooks from Denmark schools");
         // should not error if all is good
         let _post = post.unwrap();
         assert!(posts.len() > 0);
-    }
-
-    #[tokio::test]
-    async fn date_test() {
-        let date = "Sat, 10 Feb 2024 23:18:59 GMT";
-        let res = match_date(date);
-        assert!(res.is_some())
     }
 }

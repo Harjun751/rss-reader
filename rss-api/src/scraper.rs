@@ -14,6 +14,7 @@ pub async fn scrape(post: &mut Post) -> Result<(), Box<dyn Error>> {
     let new_body = match &post.link {
         x if x.contains("theverge.com") => the_verge(&data),
         x if x.contains("www.wired.com") => wired(&data),
+
         _ => Err("Unknown pattern for url!".to_string().into()),
     }?;
 

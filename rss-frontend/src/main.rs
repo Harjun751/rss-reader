@@ -2,7 +2,7 @@
 
 use std::fmt::Display;
 
-use dioxus::prelude::*;
+use dioxus::{html::desc, prelude::*};
 use dioxus_router::prelude::*;
 use rss_frontend::{get_daily_feed, get_post_with_url, Post};
 
@@ -89,7 +89,7 @@ use chrono::{DateTime, Utc, Local};
 #[component]
 fn FeedItem(cx: Scope, post: Post) -> Element{
     let Post { id, title, link, date, description, content, enclosure, pid } = post;
-    let date: DateTime<Local> = DateTime::from(date.clone().unwrap());
+    let date: DateTime<Local> = DateTime::from(date.clone());
     let date_formatted = date.format("%a, %b %d %Y");
     let time_formatted = date.format("%r");
     render!{
@@ -107,15 +107,7 @@ fn FeedItem(cx: Scope, post: Post) -> Element{
                     font_family: "\"Bitter\", serif",
                     font_size: "16px",
                     margin_top: "7px",
-                    match description {
-                        Some(val) => val,
-                        None => {
-                            match content {
-                                Some(val) => val,
-                                None => ""
-                            }
-                        }
-                    }
+                    "{description}"
                 }
                 div {
                     font_family: "\"Bitter\", serif",
@@ -131,14 +123,144 @@ fn FeedItem(cx: Scope, post: Post) -> Element{
 
 #[component]
 fn Article(cx: Scope, article_params: ArticleParams) -> Element {
+    let mut scrape = false;
+    let mut post = use_future(cx, &(scrape,), move |(scrape,)| get_post_with_url(article_params.url.clone(), scrape));
     let url = article_params.url.clone();
-    let post = use_future(cx, (), |_| get_post_with_url(url.clone()));
     match post.value(){
         Some(Ok(p)) => {
-            let d = p.description.as_ref().unwrap().clone();
-            render! {"{d}"}
+            let Post { id, title, link, date, description, content, enclosure, pid } = p;
+            let date: DateTime<Local> = DateTime::from(date.clone());
+            let date_formatted = date.format("%a, %b %d %Y");
+            let time_formatted = date.format("%r");
+            let mut content = use_state(cx, || match content{
+                Some(val) => val.clone(),
+                None => description.clone()
+            });
+            render!{
+                div{ 
+                    padding_bottom:"20px",
+                    border_bottom: "3px dashed #808080",
+                    div {
+                        font_family: "\"Patua One\", serif",
+                        font_size: "18px",
+                        text_decoration: "underline",
+                        "{title}"
+                    }
+                    div {
+                        font_family: "\"Bitter\", serif",
+                        font_size: "14px",
+                        margin_top: "7px",
+                        color: "#808080",
+                        "{date_formatted} • {time_formatted}"
+                    }
+                    div {
+                        font_family: "\"Bitter\", serif",
+                        font_size: "16px",
+                        margin_top: "7px",
+                        "{content}"
+                    }
+                }
+                div {
+                    text_align: "center",
+                    margin_top: "20px",
+                    a {
+                        href: "{link}",
+                        font_family: "\"Patua One\", serif",
+                        font_size: "14px",
+                        color: "#808080",
+                        text_decoration: "underline",
+                        "Article Link"
+                    }
+                }
+                // TODO: matching here to selectively show this button
+                div {
+                    div {
+                        text_align: "center",
+                        margin_top: "20px",
+                        font_family: "\"Patua One\", serif",
+                        font_size: "14px",
+                        color: "#808080",
+                        "Not the full Article?"
+                    }
+                    div {
+                        button{
+                            onclick: move |_| {
+                                scrape = true;
+                                post.restart();
+                            },
+                            "Engage Fallback"
+                        }
+                    }
+                }
+            }
         },
         Some(Err(e)) => render!{"{e}{url}"},
         None => render!{"Loading..."}
     }
 }
+
+// #[component]
+// fn ArticleRender(cx: Scope, post: Post) -> Element{
+    // let Post { id, title, link, date, description, content, enclosure, pid } = post;
+    // let date: DateTime<Local> = DateTime::from(date.clone());
+    // let date_formatted = date.format("%a, %b %d %Y");
+    // let time_formatted = date.format("%r");
+    // let mut content = match content{
+    //     Some(val) => val,
+    //     None => description
+    // };
+    // render!{
+    //     div{ 
+    //         padding_bottom:"20px",
+    //         border_bottom: "3px dashed #808080",
+    //         div {
+    //             font_family: "\"Patua One\", serif",
+    //             font_size: "18px",
+    //             text_decoration: "underline",
+    //             "{title}"
+    //         }
+    //         div {
+    //             font_family: "\"Bitter\", serif",
+    //             font_size: "14px",
+    //             margin_top: "7px",
+    //             color: "#808080",
+    //             "{date_formatted} • {time_formatted}"
+    //         }
+    //         div {
+    //             font_family: "\"Bitter\", serif",
+    //             font_size: "16px",
+    //             margin_top: "7px",
+    //             "{content}"
+    //         }
+    //     }
+    //     div {
+    //         text_align: "center",
+    //         margin_top: "20px",
+    //         a {
+    //             href: "{link}",
+    //             font_family: "\"Patua One\", serif",
+    //             font_size: "14px",
+    //             color: "#808080",
+    //             text_decoration: "underline",
+    //             "Article Link"
+    //         }
+    //     }
+    //     // TODO: matching here to selectively show this button
+    //     div {
+    //         div {
+    //             text_align: "center",
+    //             margin_top: "20px",
+    //             font_family: "\"Patua One\", serif",
+    //             font_size: "14px",
+    //             color: "#808080",
+    //             "Not the full Article?"
+    //         }
+    //         div {
+    //             button{
+    //                 onclick: move |ev| log::info!(ev),
+    //                 "Engage Fallback"
+    //             }
+    //         }
+    //     }
+    // }
+// }

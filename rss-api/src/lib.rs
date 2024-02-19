@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 pub mod database;
 pub mod logger;
@@ -7,15 +7,15 @@ pub mod rss_parser;
 
 #[derive(Debug, Serialize)]
 pub struct Post {
-    // ID is optional as we don't provide it when creating an object
-    id: Option<u64>,
+    id: u64,
     title: String,
     pub link: String,
-    date: Option<DateTime<Utc>>,
-    description: Option<String>,
+    date: DateTime<Utc>,
+    description: String,
+    // Some feeds don't provide content
     content: Option<String>,
+    // enclosure is the link to a resource
     enclosure: Option<String>,
-    // Note pid is PUBLISHER ID!
     pid: u64,
 }
 
@@ -25,17 +25,26 @@ pub struct Channel {
     name: String,
 }
 
+// Sub requires a post body that deserializes into the Subscription struct
+#[derive(Deserialize, Serialize)]
+pub struct Subscription {
+    pub cid: u64,
+    pub pid: Option<u64>,
+    #[serde(default)]
+    pub url: String,
+}
+
 impl Post {
     pub fn new() {}
 
     // used primarily for testing
     pub fn new_link(link: String) -> Post {
         Post {
-            id: None,
-            title: "".to_string(),
+            id: 0,
+            title: "Test".to_string(),
             link: link,
-            date: None,
-            description: None,
+            date: Utc::now(),
+            description: "Test".to_string(),
             content: None,
             enclosure: None,
             pid: 10000,
@@ -53,12 +62,6 @@ impl Post {
     }
 }
 
-#[derive(Serialize)]
-pub struct URLObject {
-    url: String,
-    pid: u64,
-}
-
 #[cfg(test)]
 mod integrated_tests {
     use super::*;
@@ -73,13 +76,15 @@ mod integrated_tests {
     #[tokio::test]
     async fn test_get_feed_insert_data_to_db() {
         // this should be a urls pointing to .xml files online
-        let obj = URLObject {
-            url: "https://raw.githubusercontent.com/Harjun751/rss-reader/main/rss-api/atom.xml"
+        let obj = Subscription {
+            url: "https://raw.githubusercontent.com/Harjun751/rss-reader/main/rss-api/test-files/atom.xml"
                 .to_string(),
-            pid: 6,
+            pid: Some(5),
+            cid: 1
         };
-        let urls: Vec<URLObject> = vec![obj];
+        let urls: Vec<Subscription> = vec![obj];
         let posts = rss_parser::get_whole_feed(urls).await;
+        assert!(posts.len() > 0);
 
         let conn = DatabaseConnection::new();
         let res = conn.insert_posts(&posts).await;

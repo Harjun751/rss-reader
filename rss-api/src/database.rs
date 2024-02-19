@@ -1,5 +1,5 @@
 use crate::logger::DetailedError;
-use crate::{rss_parser::validate_feed, Channel, Post, URLObject};
+use crate::{rss_parser::validate_feed, Channel, Post, Subscription};
 use chrono::NaiveDateTime;
 use mysql::{params, prelude::Queryable, Pool};
 use std::error::Error;
@@ -73,14 +73,15 @@ impl DatabaseConnection {
         }
     }
 
-    pub async fn get_subbed(&self, cid: u64) -> Result<Vec<URLObject>, mysql::Error> {
+    pub async fn get_subbed(&self, cid: u64) -> Result<Vec<Subscription>, mysql::Error> {
         let mut conn = self.pool.get_conn().unwrap();
 
         let query = conn.prep("SELECT url, subscription.pid from subscription INNER JOIN publisher on subscription.pid=publisher.pid where cid=:cid")?;
 
-        conn.exec_map(query, params! {"cid" => cid}, |(url, pid)| URLObject {
-            url,
-            pid,
+        conn.exec_map(query, params! {"cid" => cid}, |(url, pid)| Subscription {
+            cid: cid,
+            pid: pid,
+            url: url,
         })
     }
 
@@ -95,16 +96,7 @@ impl DatabaseConnection {
                     "url" => &p.link,
                     "title" => &p.title,
                     "content" => &p.content,
-                    "date_added" => {
-                        match &p.date{
-                            // YYYY-MM-DD hh:mm:ss
-                            Some(d) => {
-                                format!("{}", d.format("%Y-%m-%d %H:%M:%S"))
-                            },
-                            // TODO: ERROR HANDLING HERE LOL. Also check how null values are handled. Are they placed in front?
-                            None => "1992-01-01".to_string()
-                        }
-                    },
+                    "date_added" => format!("{}", &p.date.format("%Y-%m-%d %H:%M:%S")),
                     "description" => &p.description,
                     "image" => &p.enclosure,
                     "pid" => &p.pid,
@@ -145,21 +137,17 @@ impl DatabaseConnection {
                 String,
                 String,
                 Option<String>,
-                Option<NaiveDateTime>,
-                Option<String>,
+                NaiveDateTime,
+                String,
                 Option<String>,
                 u64,
             )| {
-                let date = match date_added {
-                    Some(dt) => Some(dt.and_utc()),
-                    None => None,
-                };
                 Post {
-                    id: Some(id),
+                    id: id,
                     link: url,
                     title: title,
                     content: content,
-                    date: date,
+                    date: date_added.and_utc(),
                     description: description,
                     enclosure: image,
                     pid: pid,
@@ -201,22 +189,17 @@ impl DatabaseConnection {
                 u64,
                 String,
                 String,
-                Option<NaiveDateTime>,
-                Option<String>,
+                NaiveDateTime,
+                String,
                 Option<String>,
                 u64,
             )| {
-                let date = match date_added {
-                    Some(dt) => Some(dt.and_utc()),
-                    None => None,
-                };
-
                 Post {
-                    id: Some(id),
+                    id: id,
                     link: url,
                     title: title,
                     content: None,
-                    date: date,
+                    date: date_added.and_utc(),
                     description: description,
                     enclosure: image,
                     pid: pid,
