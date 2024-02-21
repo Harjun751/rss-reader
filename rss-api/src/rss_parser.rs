@@ -430,6 +430,7 @@ mod rss_tests {
             url: "rss-20.xml".to_string(),
             pid: Some(1),
             cid: 1,
+            name: "nil".to_string(),
         };
         let res = parse_feed(&data, &obj).await;
         match res {
@@ -456,6 +457,7 @@ mod rss_tests {
             url: "rss-91.xml".to_string(),
             pid: Some(1),
             cid: 1,
+            name: "nil".to_string(),
         };
         let res = parse_feed(&data, &obj).await;
         match res {
@@ -480,6 +482,7 @@ mod rss_tests {
             url: "rss-92.xml".to_string(),
             pid: Some(1),
             cid: 1,
+            name: "nil".to_string(),
         };
         let res = parse_feed(&data, &obj).await;
         match res {
@@ -504,6 +507,7 @@ mod rss_tests {
             url: "atom.xml".to_string(),
             pid: Some(1),
             cid: 1,
+            name: "nil".to_string(),
         };
         let res = parse_feed(&data, &obj).await;
         match res {
@@ -538,7 +542,8 @@ mod rss_tests {
             url: "https://raw.githubusercontent.com/Harjun751/rss-reader/main/rss-api/test-files/atom.xml"
                 .to_string(),
             pid: Some(1),
-            cid: 1
+            cid: 1,
+            name: "nil".to_string(),
         };
         let urls: Vec<Subscription> = vec![obj];
         let posts = get_whole_feed(urls).await;

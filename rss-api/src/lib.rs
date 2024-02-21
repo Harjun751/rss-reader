@@ -32,6 +32,8 @@ pub struct Subscription {
     pub pid: Option<u64>,
     #[serde(default)]
     pub url: String,
+    #[serde(default)]
+    pub name: String,
 }
 
 impl Post {
@@ -80,7 +82,8 @@ mod integrated_tests {
             url: "https://raw.githubusercontent.com/Harjun751/rss-reader/main/rss-api/test-files/atom.xml"
                 .to_string(),
             pid: Some(5),
-            cid: 1
+            cid: 1,
+            name: "nil".to_string()
         };
         let urls: Vec<Subscription> = vec![obj];
         let posts = rss_parser::get_whole_feed(urls).await;

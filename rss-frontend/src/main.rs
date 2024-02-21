@@ -1,10 +1,10 @@
 #![allow(non_snake_case)]
-
-use std::fmt::Display;
-
-use dioxus::{html::desc, prelude::*};
+mod querystructs;
+use log::LevelFilter;
+use dioxus::prelude::*;
 use dioxus_router::prelude::*;
-use rss_frontend::{get_daily_feed, get_post_with_url, Post};
+use rss_frontend::{get_channels, get_daily_feed, get_post_with_url, get_subscription_for_channel, unsubscribe, Channel, Post};
+use querystructs::*;
 
 #[derive(Routable, PartialEq, Debug, Clone)]
 pub enum Route{
@@ -14,37 +14,21 @@ pub enum Route{
     #[route("/article?:article_params")]
     Article{
         article_params: ArticleParams,
-    }
+    },
+
+    #[route("/ch?:chparams")]
+    ChannelSetting{
+        chparams: ChParams,
+    },
+
+    #[route("/settings")]
+    Settings {}
 }
 
-#[derive(Debug, Clone, PartialEq)]
-struct ArticleParams {
-    url: String,
-}
-/// The display impl needs to display the query in a way that can be parsed:
-impl Display for ArticleParams {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "url={}", self.url)
-    }
-}
 
-impl FromQuery for ArticleParams{
-    fn from_query(query: &str) -> Self {
-        let mut url = None;
-        let pairs = form_urlencoded::parse(query.as_bytes());
-        pairs.for_each(|(key, value)| {
-            if key == "url" {
-                url = Some(value.clone().into());
-            }
-        });
-        Self {
-            url: url.unwrap()
-        }
-    }
-}
 
 fn main(){
-    env_logger::init();
+    dioxus_logger::init(LevelFilter::Info).expect("failed to init logger");
     dioxus_web::launch(App);
 }
 
@@ -54,41 +38,112 @@ fn App(cx: Scope) -> Element {
     }
 }
 
-// "id": null,
-// "title": "Ross Gelbspan, author who probed roots of climate change denial, dies at 84",
-// "link": "https://www.washingtonpost.com",
-// "date": "2024-02-18T00:06:16Z",
-// "description": "Mr. Gelbspan, a longtime journalist, criticized the profession for giving a forum to those who sow doubts about global warming.",
-// "content": null,
-// "enclosure": null,
-// "pid": 3
-
 #[component]
 fn DailyFeed(cx: Scope) -> Element{
-    // TODO: HARDCODED CID VALUE
-    let feed = use_future(cx, (), |_| get_daily_feed(1));
-    match feed.value(){
-        Some(Ok(list)) => {
-            render!{
-                for item in list {
-                    FeedItem { post: item.clone() }
+    // TODO: HARDCODED UID VALUE
+    let fut = use_future(cx, (), |_| get_channels(1));
+    
+    match fut.value() {
+        Some(Ok(channels)) => {
+            let ch1 = channels.get(0);
+            match ch1{
+                Some(ch) => {
+                    let cid = use_state(cx, || ch.cid);
+                    let post_fut = use_future(cx, cid, |cid| get_daily_feed(*cid));
+                    cx.render(
+                        rsx!{
+
+                            div{
+                                display: "flex",
+                                align_items: "center",
+                                margin_bottom: "40px",
+                                div{
+                                    h1{
+                                        "Today's Feed:"
+                                    }
+                                }
+                                div {
+                                    class: "fancy-select",
+                                    select{
+                                        all: "unset",
+                                        class: "fancy-select",
+                                        margin_left: "20px",
+                                        font_family: "\"Patua One\", serif",
+                                        font_size: "20px",
+                                        background: "#D9D9D9",
+                                        padding: "5px 32px 5px 10px",
+                                        onchange: |e| {
+                                            let new_cid = &e.value.parse::<u64>().unwrap();
+                                            log::error!("New cid: {new_cid}");
+                                            cid.set(*new_cid);
+                                        },
+                                        for ch in channels {
+                                            option{
+                                                // font_family: "\"Patua One\", serif",
+                                                value: ch.cid as i64,
+                                                "{ch.name}"
+                                            }
+                                        }
+                                    }
+                                }
+                                // reminder for blog lol: talk about how it was kinda annoying to do a simple thing like this\
+                                div {
+                                    margin_left: "auto",
+                                    margin_right: "30px",
+                                    Link{
+                                        to: Route::Settings {},
+                                        img{
+                                            src:"/assets/cog.png",
+                                            width: "50px",
+                                        }
+                                    }   
+                                }
+                            }
+                            match post_fut.state(){
+                                UseFutureState::Complete(value) => {
+                                    match value {
+                                        Ok(posts) => {
+                                            if posts.len() == 0 {
+                                                rsx!{"subscribe to some stuff."}
+                                            } else {
+                                                rsx!{
+                                                    for item in posts {
+                                                        FeedItem { post: item.clone() }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        Err(e) => {
+                                            rsx!{"failed to load, bro."}
+                                        }
+                                    }
+                                },
+                                _ => {
+                                    rsx!{"loading.."}
+                                }
+                            }
+                        }
+                    )
+                },
+                None => {
+                    render!("subscribe to some channels bro.")
                 }
             }
-        }
+        },
         Some(Err(e)) => {
-            render! {"An error occured when loading. {e}"}
+            render!("failed loading...")
         }
         None => {
-            render! {"loading feed..."}
+            render!("loading...")
         }
     }
 }
 
-use chrono::{DateTime, Utc, Local};
+use chrono::{DateTime, Local};
 
 #[component]
 fn FeedItem(cx: Scope, post: Post) -> Element{
-    let Post { id, title, link, date, description, content, enclosure, pid } = post;
+    let Post { title, link, date, description, .. } = post;
     let date: DateTime<Local> = DateTime::from(date.clone());
     let date_formatted = date.format("%a, %b %d %Y");
     let time_formatted = date.format("%r");
@@ -98,23 +153,19 @@ fn FeedItem(cx: Scope, post: Post) -> Element{
             div {
                 margin_bottom: "30px",
                 div {
-                    font_family: "\"Patua One\", serif",
-                    font_size: "18px",
-                    text_decoration: "underline",
-                    "{title}"
+                    h2{
+                        "{title}"
+                    }
                 }
                 div {
-                    font_family: "\"Bitter\", serif",
-                    font_size: "16px",
-                    margin_top: "7px",
-                    "{description}"
+                    p{
+                        "{description}"
+                    }
                 }
                 div {
-                    font_family: "\"Bitter\", serif",
-                    font_size: "14px",
-                    margin_top: "7px",
-                    color: "#808080",
-                    "{date_formatted} • {time_formatted}"
+                    small{
+                        "{date_formatted} • {time_formatted}"
+                    }
                 }
             }
         }
@@ -123,144 +174,195 @@ fn FeedItem(cx: Scope, post: Post) -> Element{
 
 #[component]
 fn Article(cx: Scope, article_params: ArticleParams) -> Element {
-    let mut scrape = false;
-    let mut post = use_future(cx, &(scrape,), move |(scrape,)| get_post_with_url(article_params.url.clone(), scrape));
+    let scrape = use_state(cx, || false);
+    let post = use_future(cx, scrape, |scrape| get_post_with_url(article_params.url.clone(), *scrape) );
     let url = article_params.url.clone();
-    match post.value(){
-        Some(Ok(p)) => {
-            let Post { id, title, link, date, description, content, enclosure, pid } = p;
-            let date: DateTime<Local> = DateTime::from(date.clone());
-            let date_formatted = date.format("%a, %b %d %Y");
-            let time_formatted = date.format("%r");
-            let mut content = use_state(cx, || match content{
-                Some(val) => val.clone(),
-                None => description.clone()
-            });
-            render!{
-                div{ 
-                    padding_bottom:"20px",
-                    border_bottom: "3px dashed #808080",
-                    div {
-                        font_family: "\"Patua One\", serif",
-                        font_size: "18px",
-                        text_decoration: "underline",
-                        "{title}"
-                    }
-                    div {
-                        font_family: "\"Bitter\", serif",
-                        font_size: "14px",
-                        margin_top: "7px",
-                        color: "#808080",
-                        "{date_formatted} • {time_formatted}"
-                    }
-                    div {
-                        font_family: "\"Bitter\", serif",
-                        font_size: "16px",
-                        margin_top: "7px",
-                        "{content}"
-                    }
-                }
-                div {
-                    text_align: "center",
-                    margin_top: "20px",
-                    a {
-                        href: "{link}",
-                        font_family: "\"Patua One\", serif",
-                        font_size: "14px",
-                        color: "#808080",
-                        text_decoration: "underline",
-                        "Article Link"
-                    }
-                }
-                // TODO: matching here to selectively show this button
-                div {
-                    div {
-                        text_align: "center",
-                        margin_top: "20px",
-                        font_family: "\"Patua One\", serif",
-                        font_size: "14px",
-                        color: "#808080",
-                        "Not the full Article?"
-                    }
-                    div {
-                        button{
-                            onclick: move |_| {
-                                scrape = true;
-                                post.restart();
-                            },
-                            "Engage Fallback"
+    
+    cx.render(match post.state(){
+        UseFutureState::Complete(value) => {
+            match value {
+                Ok(p) => {
+                    let Post { id, title, link, date, description, content, enclosure, pid } = p;
+                    let date: DateTime<Local> = DateTime::from(date.clone());
+                    let date_formatted = date.format("%a, %b %d %Y");
+                    let time_formatted = date.format("%r");
+                    rsx!{
+                        div{ 
+                            padding_bottom:"20px",
+                            border_bottom: "3px dashed #808080",
+                            div {
+                                h2{
+                                    "{title}"
+                                }
+                            }
+                            div {
+                                small{
+                                    "{date_formatted} • {time_formatted}"
+                                }
+                            }
+                            div {
+                                p{
+                                    match content {
+                                        Some(val) => rsx!{"{val}"},
+                                        None => rsx!{"{description}"}
+                                    }
+                                }
+                            }
                         }
+                        div {
+                            text_align: "center",
+                            margin_top: "20px",
+                            a {
+                                href: "{link}",
+                                font_family: "\"Patua One\", serif",
+                                font_size: "14px",
+                                color: "#808080",
+                                text_decoration: "underline",
+                                "Article Link"
+                            }
+                        }
+                        // TODO: matching here to selectively show this button
+                        if **scrape {
+                            rsx!{
+                                div {
+                                    div {
+                                        text_align: "center",
+                                        margin_top: "20px",
+                                        font_family: "\"Patua One\", serif",
+                                        font_size: "14px",
+                                        color: "#808080",
+                                        "Not working too well?"
+                                    }
+                                    div {
+                                        button{
+                                            color: "#808080",
+                                            font_family: "\"Patua One\", serif",
+                                            font_size: "14px",
+                                            background_color: "white",
+                                            padding: "13px 10px",
+                                            border: "3px solid #808080",
+                                            display: "block",
+                                            margin: "auto",
+                                            margin_top: "20px",
+                                            onclick: |_| {
+                                                scrape.set(false)
+                                            },
+                                            "Disable Fallback"
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            rsx!{
+                                div {
+                                    div {
+                                        text_align: "center",
+                                        margin_top: "20px",
+                                        font_family: "\"Patua One\", serif",
+                                        font_size: "14px",
+                                        color: "#808080",
+                                        "Not the full Article?"
+                                    }
+                                    div {
+                                        button{
+                                            color: "#808080",
+                                            font_family: "\"Patua One\", serif",
+                                            font_size: "14px",
+                                            background_color: "white",
+                                            padding: "13px 10px",
+                                            border: "3px solid #808080",
+                                            display: "block",
+                                            margin: "auto",
+                                            margin_top: "20px",
+                                            onclick: |_| {
+                                                scrape.set(true)
+                                            },
+                                            "ENGAGE FALLBACK"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
                     }
+                },
+                Err(e) =>{
+                    rsx!("{e} {url}")
                 }
             }
         },
-        Some(Err(e)) => render!{"{e}{url}"},
-        None => render!{"Loading..."}
+        _ => {
+            rsx!{"loading..."}
+        }
+    })
+}
+
+#[component]
+fn Settings(cx: Scope) -> Element{
+    // todo: hardcoded id
+    let channels = use_future(cx, (), |_| get_channels(1) );
+    match channels.value(){
+        Some(Ok(val)) => {
+            render!(
+                rsx!{
+                    h1{
+                        "Settings"
+                    }
+                    h2{
+                        margin_top:"20px",
+                        margin_bottom:"20px",
+                        "Channels"
+                    }
+                    table{
+                        for ele in val{
+                            tr{
+                                Link{
+                                    to: Route::ChannelSetting { chparams: ChParams{cid: ele.cid} },
+                                    td{
+                                        "{ele.name}"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            )
+        }
+        _ => {
+            render!("loading")
+        }
     }
 }
 
-// #[component]
-// fn ArticleRender(cx: Scope, post: Post) -> Element{
-    // let Post { id, title, link, date, description, content, enclosure, pid } = post;
-    // let date: DateTime<Local> = DateTime::from(date.clone());
-    // let date_formatted = date.format("%a, %b %d %Y");
-    // let time_formatted = date.format("%r");
-    // let mut content = match content{
-    //     Some(val) => val,
-    //     None => description
-    // };
-    // render!{
-    //     div{ 
-    //         padding_bottom:"20px",
-    //         border_bottom: "3px dashed #808080",
-    //         div {
-    //             font_family: "\"Patua One\", serif",
-    //             font_size: "18px",
-    //             text_decoration: "underline",
-    //             "{title}"
-    //         }
-    //         div {
-    //             font_family: "\"Bitter\", serif",
-    //             font_size: "14px",
-    //             margin_top: "7px",
-    //             color: "#808080",
-    //             "{date_formatted} • {time_formatted}"
-    //         }
-    //         div {
-    //             font_family: "\"Bitter\", serif",
-    //             font_size: "16px",
-    //             margin_top: "7px",
-    //             "{content}"
-    //         }
-    //     }
-    //     div {
-    //         text_align: "center",
-    //         margin_top: "20px",
-    //         a {
-    //             href: "{link}",
-    //             font_family: "\"Patua One\", serif",
-    //             font_size: "14px",
-    //             color: "#808080",
-    //             text_decoration: "underline",
-    //             "Article Link"
-    //         }
-    //     }
-    //     // TODO: matching here to selectively show this button
-    //     div {
-    //         div {
-    //             text_align: "center",
-    //             margin_top: "20px",
-    //             font_family: "\"Patua One\", serif",
-    //             font_size: "14px",
-    //             color: "#808080",
-    //             "Not the full Article?"
-    //         }
-    //         div {
-    //             button{
-    //                 onclick: move |ev| log::info!(ev),
-    //                 "Engage Fallback"
-    //             }
-    //         }
-    //     }
-    // }
-// }
+#[component]
+fn ChannelSetting(cx: Scope, chparams: ChParams) -> Element{
+    let subs = use_future(cx, (), |_| get_subscription_for_channel(chparams.cid) );
+    render!(
+        h1{
+        }
+        h2{
+            "Subscribed Feeds"
+        }
+        match subs.value(){
+            Some(Ok(val)) => {
+                rsx!(table{
+                    for ele in val{
+                        tr{
+                            td{
+                                onclick: |_| {
+                                    // cx.spawn(
+                                        
+                                    // )
+                                },
+                                "{ele.name} ({ele.url})"
+                            }
+                        }
+                    }
+                })
+            }
+            _ => {
+                rsx!("loading.")
+            }
+        }
+    )
+}

@@ -76,12 +76,15 @@ impl DatabaseConnection {
     pub async fn get_subbed(&self, cid: u64) -> Result<Vec<Subscription>, mysql::Error> {
         let mut conn = self.pool.get_conn().unwrap();
 
-        let query = conn.prep("SELECT url, subscription.pid from subscription INNER JOIN publisher on subscription.pid=publisher.pid where cid=:cid")?;
+        let query = conn.prep("SELECT url, subscription.pid, name from subscription INNER JOIN publisher on subscription.pid=publisher.pid where cid=:cid")?;
 
-        conn.exec_map(query, params! {"cid" => cid}, |(url, pid)| Subscription {
-            cid: cid,
-            pid: pid,
-            url: url,
+        conn.exec_map(query, params! {"cid" => cid}, |(url, pid, name)| {
+            Subscription {
+                cid: cid,
+                pid: pid,
+                url: url,
+                name: name,
+            }
         })
     }
 
