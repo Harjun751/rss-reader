@@ -1,4 +1,5 @@
 use serde::{Serialize, Deserialize};
+use std::collections::HashMap;
 use chrono::{DateTime, Utc};
 
 pub static API_URL: &str = "http://localhost:3000/";
@@ -77,15 +78,37 @@ pub async fn get_subscription_for_channel(id: u64) -> Result<Vec<Subscription>,r
     reqwest::get(&url).await?.json().await
 }
 
-struct UnsubData{
-    cid: u64,
-    pid: u64,
-}
+
 pub async fn unsubscribe(cid: u64, pid: u64) -> Result<(), String> {
     let endpoint = format!("{}{}",API_URL , "sub");
     let cli = reqwest::Client::new();
+    let mut map = HashMap::new();
+    map.insert("cid", cid);
+    map.insert("pid", pid);
+
+
     let resp = cli.delete(endpoint)
-        .send().await;
+        .json(&map).send().await;
+
+    match resp {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e.to_string())
+    }
+}
+
+#[derive(Serialize)]
+struct SubscribeData{
+    cid: u64,
+    url: String,
+}
+pub async fn subscribe(cid: u64, url: String) -> Result<(), String> {
+    let endpoint = format!("{}{}",API_URL , "sub");
+    let cli = reqwest::Client::new();
+    let sub_data = SubscribeData{cid, url};
+
+
+    let resp = cli.post(endpoint)
+        .json(&sub_data).send().await;
 
     match resp {
         Ok(_) => Ok(()),

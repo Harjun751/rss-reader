@@ -3,7 +3,7 @@ mod querystructs;
 use log::LevelFilter;
 use dioxus::prelude::*;
 use dioxus_router::prelude::*;
-use rss_frontend::{get_channels, get_daily_feed, get_post_with_url, get_subscription_for_channel, unsubscribe, Channel, Post};
+use rss_frontend::{get_channels, get_daily_feed, get_post_with_url, get_subscription_for_channel, subscribe, unsubscribe, Channel, Post, Subscription};
 use querystructs::*;
 
 #[derive(Routable, PartialEq, Debug, Clone)]
@@ -337,22 +337,64 @@ fn Settings(cx: Scope) -> Element{
 #[component]
 fn ChannelSetting(cx: Scope, chparams: ChParams) -> Element{
     let subs = use_future(cx, (), |_| get_subscription_for_channel(chparams.cid) );
+    let url = use_state(cx, || "".to_string());
+
     render!(
-        h1{
-        }
         h2{
             "Subscribed Feeds"
         }
+
+
+        input{
+            name: "url",
+            value: "{url}",
+            placeholder:"Enter URL here...",
+            oninput: move |evt| url.set(evt.value.clone()),
+        },
+        input {
+            r#type: "submit",
+            value :"Add",
+            onclick: move |_| {
+                log::error!("Curr value: {url}");
+                let di = cx.spawn({
+                    let cid = chparams.cid;
+                    let val = url.to_string();
+                    async move{
+                        match subscribe(cid, val).await{
+                            Ok(_) => {
+                                log::error!("Hooray!");
+                            },
+                            Err(e) => {
+                                log::error!("{:#?} \n. daman.", e)
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
         match subs.value(){
             Some(Ok(val)) => {
                 rsx!(table{
-                    for ele in val{
+                    for (i, ele) in val.iter().enumerate(){
                         tr{
                             td{
                                 onclick: |_| {
-                                    // cx.spawn(
-                                        
-                                    // )
+                                    cx.spawn({
+                                        let cid = ele.cid;
+                                        let pid = ele.pid;
+
+                                        async move{
+                                            match unsubscribe(cid, pid).await{
+                                                Ok(_) => {
+                                                    log::error!("Hooray!");
+                                                },
+                                                Err(e) => {
+                                                    log::error!("{:#?} \n. daman.", e)
+                                                }
+                                            }
+                                        }
+                                    });
                                 },
                                 "{ele.name} ({ele.url})"
                             }
