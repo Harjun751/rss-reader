@@ -1,5 +1,6 @@
+use reqwest::header::{HeaderMap, HeaderValue, ACCESS_CONTROL_ALLOW_CREDENTIALS, ACCESS_CONTROL_ALLOW_HEADERS, ACCESS_CONTROL_ALLOW_METHODS, ACCESS_CONTROL_ALLOW_ORIGIN};
 use serde::{Serialize, Deserialize};
-use std::collections::HashMap;
+use std::{char::from_u32_unchecked, collections::HashMap};
 use chrono::{DateTime, Utc};
 
 pub static API_URL: &str = "http://localhost:3000/";
@@ -38,14 +39,14 @@ pub async fn get_post_with_url(url: String, scrape: bool) -> Result<Post, reqwes
         .json::<Post>().await
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct Channel {
     pub cid: u64,
     pub name: String,
 }
-pub async fn get_channels(id: u64) -> Result<Vec<Channel>, reqwest::Error>{
+pub async fn get_channels(id: u64) -> Result<Vec<Channel>, String>{
     let endpoint = format!("{}{}{}",API_URL , "channel?uid=", id);
-    reqwest::get(&endpoint).await?.json().await
+    reqwest::get(&endpoint).await.map_err(|e| e.to_string())?.json().await.map_err(|e| e.to_string())
 }
 
 pub async fn get_channels_and_feed(id: u64) -> Result<(Vec<Channel>, Vec<Post>), String> {
@@ -66,16 +67,16 @@ pub async fn get_channels_and_feed(id: u64) -> Result<(Vec<Channel>, Vec<Post>),
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct Subscription {
     pub cid: u64,
     pub pid: u64,
     pub url: String,
     pub name: String,
 }
-pub async fn get_subscription_for_channel(id: u64) -> Result<Vec<Subscription>,reqwest::Error>{
+pub async fn get_subscription_for_channel(id: u64) -> Result<Vec<Subscription>, String>{
     let url = format!("{}{}{}",API_URL , "sub?cid=", id);
-    reqwest::get(&url).await?.json().await
+    reqwest::get(&url).await.map_err(|e| e.to_string())?.json().await.map_err(|e| e.to_string())
 }
 
 
@@ -114,4 +115,54 @@ pub async fn subscribe(cid: u64, url: String) -> Result<(), String> {
         Ok(_) => Ok(()),
         Err(e) => Err(e.to_string())
     }
+}
+
+pub async fn delete_channel(uid: u64, cid: u64) -> Result<(), String> {
+    let endpoint = format!("{}{}?uid={}&cid={}",API_URL , "channel", uid, cid);
+    let cli = reqwest::Client::new();
+
+
+    let resp = cli.delete(endpoint)
+        .send().await;
+
+    match resp {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e.to_string())
+    }
+}
+
+#[derive(Serialize)]
+struct ChannelData{
+    uid: u64,
+    name: String,
+}
+pub async fn create_channel(uid: u64, name: String) -> Result<(), String> {
+    let endpoint = format!("{}{}",API_URL , "channel");
+    let cli = reqwest::Client::new();
+    let data = ChannelData{uid, name};
+
+
+    let resp = cli.post(endpoint)
+        .json(&data).send().await;
+
+    match resp {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e.to_string())
+    }
+}
+
+pub async fn set_pref() -> Result<(), String> {
+    let endpoint = format!("{}{}",API_URL , "set");
+    // let cli = reqwest::Client::builder().cookie_store(true).build().unwrap();
+    let cli = reqwest::Client::new();
+
+    let resp = cli.post(endpoint).send().await;
+    match resp {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e.to_string())
+    }
+}
+pub async fn get_pref() -> Result<String, String> {
+    let endpoint = format!("{}{}",API_URL , "get");
+    reqwest::get(&endpoint).await.map_err(|e| e.to_string())?.json().await.map_err(|e| e.to_string())
 }

@@ -5,14 +5,26 @@ use axum::{
     debug_handler,
     extract::{Json, Query, State},
     http::StatusCode,
+    response::{AppendHeaders, IntoResponse},
     routing::{get, post},
     Router,
 };
+use http::{
+    header::{ACCEPT, ACCESS_CONTROL_ALLOW_CREDENTIALS, AUTHORIZATION, CONTENT_TYPE, SET_COOKIE},
+    HeaderValue,
+};
+use http::{
+    header::{
+        ACCESS_CONTROL_ALLOW_HEADERS, ACCESS_CONTROL_ALLOW_METHODS, ACCESS_CONTROL_ALLOW_ORIGIN,
+    },
+    Method,
+};
+use reqwest::cookie::Jar;
 use rss_api::{database::DatabaseConnection, rss_parser, Channel, Post, Subscription};
 use serde::Deserialize;
 use std::collections::HashMap;
 use tower::ServiceBuilder;
-use tower_http::cors::{Any, CorsLayer};
+use tower_http::cors::{AllowMethods, AllowOrigin, Any, CorsLayer};
 use tower_http::trace::TraceLayer;
 use tracing::error;
 use tracing_subscriber::prelude::*;
@@ -34,9 +46,18 @@ async fn main() {
 
     let cors = CorsLayer::new()
         // allow requests from any origin
-        .allow_methods(Any)
-        .allow_origin(Any)
-        .allow_headers(Any);
+        .allow_methods([Method::GET, Method::POST, Method::DELETE, Method::OPTIONS])
+        .allow_origin("http://localhost:8080".parse::<HeaderValue>().unwrap())
+        .allow_credentials(true)
+        .allow_headers([
+            AUTHORIZATION,
+            ACCEPT,
+            ACCESS_CONTROL_ALLOW_CREDENTIALS,
+            ACCESS_CONTROL_ALLOW_METHODS,
+            ACCESS_CONTROL_ALLOW_HEADERS,
+            ACCESS_CONTROL_ALLOW_ORIGIN,
+            CONTENT_TYPE,
+        ]);
 
     let app = Router::new()
         .route("/all", get(all_posts))
@@ -47,6 +68,8 @@ async fn main() {
             "/channel",
             get(get_channels).post(post_channel).delete(delete_channel),
         )
+        .route("/set", post(set_scrape_preference))
+        .route("/get", get(get_scrape_preference))
         .with_state(Appstate { dbconn })
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()))
         .layer(cors);
@@ -89,6 +112,18 @@ async fn all_posts(
             ))
         }
     }
+}
+
+#[debug_handler]
+async fn set_scrape_preference() -> impl IntoResponse {
+    let headers = AppendHeaders([(SET_COOKIE, "HEYHEY=YOUYHOU; SameSite=None; Secure")]);
+    let content = "teehee!";
+    (headers, content)
+}
+
+#[debug_handler]
+async fn get_scrape_preference() -> String {
+    "hi".to_string()
 }
 
 #[derive(Deserialize)]

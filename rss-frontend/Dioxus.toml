@@ -1,6 +1,7 @@
 [application]
 name="rss-frontend"
 default_platform = "web"
+asset_dir = "public"
 
 [web.resource]
 style = [

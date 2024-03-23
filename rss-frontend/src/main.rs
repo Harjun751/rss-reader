@@ -1,10 +1,13 @@
+// TODO: alerts, cookies
+
 #![allow(non_snake_case)]
 mod querystructs;
 use log::LevelFilter;
-use dioxus::prelude::*;
+use dioxus::{html::EventData, prelude::*};
 use dioxus_router::prelude::*;
-use rss_frontend::{get_channels, get_daily_feed, get_post_with_url, get_subscription_for_channel, subscribe, unsubscribe, Channel, Post, Subscription};
+use rss_frontend::*;
 use querystructs::*;
+use chrono::{DateTime, Local};
 
 #[derive(Routable, PartialEq, Debug, Clone)]
 pub enum Route{
@@ -22,8 +25,16 @@ pub enum Route{
     },
 
     #[route("/settings")]
-    Settings {}
+    Settings {},
+
+    #[route("/set")]
+    Set{},
+
+    #[route("/get")]
+    Get{}
 }
+
+struct UID(u64);
 
 
 
@@ -33,15 +44,44 @@ fn main(){
 }
 
 fn App(cx: Scope) -> Element {
+    // todo: hardcoded uid
+    use_shared_state_provider(cx, || UID(1));
     render!{
         Router::<Route>{}
     }
 }
+#[component]
+fn Set(cx: Scope) -> Element{
+    let fut = use_future(cx, (), |_| set_pref());
+    render!(match fut.value(){
+        Some(Ok(_))=>{
+            rsx!(p{"woohoo"})
+        },
+        _ => {
+            rsx!(p{"aww :("})
+        }
+    })
+}
+#[component]
+fn Get(cx: Scope) -> Element{
+    let fut = use_future(cx, (), |_| get_pref());
+    render!(match fut.value(){
+        Some(Ok(val))=>{
+            rsx!(p{"got your preferences dawg. {val}"})
+        },
+        Some(Err(val)) => {
+            rsx!(p{"failed to get your preferences dawg. {val}"})
+        }
+        _ => {
+            rsx!(p{"aww :("})
+        }
+    })
+}
 
 #[component]
 fn DailyFeed(cx: Scope) -> Element{
-    // TODO: HARDCODED UID VALUE
-    let fut = use_future(cx, (), |_| get_channels(1));
+    let uid = use_shared_state::<UID>(cx).unwrap().read().0;
+    let fut = use_future(cx, (), |_| get_channels(uid));
     
     match fut.value() {
         Some(Ok(channels)) => {
@@ -93,7 +133,7 @@ fn DailyFeed(cx: Scope) -> Element{
                                     Link{
                                         to: Route::Settings {},
                                         img{
-                                            src:"/assets/cog.png",
+                                            src:"./assets/cog.png",
                                             width: "50px",
                                         }
                                     }   
@@ -138,8 +178,6 @@ fn DailyFeed(cx: Scope) -> Element{
         }
     }
 }
-
-use chrono::{DateTime, Local};
 
 #[component]
 fn FeedItem(cx: Scope, post: Post) -> Element{
@@ -299,32 +337,82 @@ fn Article(cx: Scope, article_params: ArticleParams) -> Element {
 
 #[component]
 fn Settings(cx: Scope) -> Element{
-    // todo: hardcoded id
-    let channels = use_future(cx, (), |_| get_channels(1) );
+    let uid = use_shared_state::<UID>(cx).unwrap().read().0;
+    let channels = use_future(cx, (), |_| get_channels(uid) );
+    let ch_name = use_state(cx, || "".to_string());
     match channels.value(){
         Some(Ok(val)) => {
             render!(
                 rsx!{
-                    h1{
-                        "Settings"
-                    }
-                    h2{
-                        margin_top:"20px",
-                        margin_bottom:"20px",
-                        "Channels"
-                    }
-                    table{
-                        for ele in val{
-                            tr{
-                                Link{
-                                    to: Route::ChannelSetting { chparams: ChParams{cid: ele.cid} },
+                    div{
+                        padding:"0 15px",
+                        h1{
+                            "Settings"
+                        }
+                        h2{
+                            margin_top:"20px",
+                            "Channels"
+                        }
+    
+                        div{
+                            margin:"20px auto",
+                            width: "96%",
+
+                            input{
+                                name: "channel_name",
+                                style: "width:80%;height:33px;",
+                                border: "1px solid black",
+                                border_right: "none",
+                                value: "{ch_name}",
+                                placeholder:"Enter channel name...",
+                                oninput: move |evt| ch_name.set(evt.value.clone()),
+                            },
+                            input {
+                                r#type: "submit",
+                                style: "width:20%;height:33px;",
+                                value :"Add",
+                                border: "1px solid black",
+                                border_left: "none",
+                                onclick: move |_| {
+                                    cx.spawn({
+                                        let val = ch_name.to_string();
+                                        let channels = channels.clone();
+
+                                        async move{
+                                            match create_channel(uid, val).await{
+                                                Ok(_) => {
+                                                    channels.restart()
+                                                },
+                                                Err(e) => {
+                                                    log::error!("{:#?} \n. daman.", e)
+                                                }
+                                            }
+                                        }
+                                    });
+                                }
+                            }
+                        }
+    
+                        table{
+                            for ele in val{
+                                tr{
                                     td{
-                                        "{ele.name}"
+                                        Link{
+                                            to: Route::ChannelSetting { chparams: ChParams{cid: ele.cid} },
+                                            p{
+                                                padding_left:"20px",
+                                                margin:"0px",
+                                                height:"34px",
+                                                line_height:"34px",
+                                                "{ele.name}"
+                                            }
+                                        }
                                     }
                                 }
                             }
                         }
                     }
+
                 }
             )
         }
@@ -336,74 +424,146 @@ fn Settings(cx: Scope) -> Element{
 
 #[component]
 fn ChannelSetting(cx: Scope, chparams: ChParams) -> Element{
-    let subs = use_future(cx, (), |_| get_subscription_for_channel(chparams.cid) );
+    let subs = use_future(
+        cx,
+        (),
+        move |_| get_subscription_for_channel(chparams.cid)
+    );
     let url = use_state(cx, || "".to_string());
+    let uid = use_shared_state::<UID>(cx).unwrap().read().0;
+    let nav = use_navigator(cx);
 
     render!(
-        h2{
-            "Subscribed Feeds"
-        }
-
-
-        input{
-            name: "url",
-            value: "{url}",
-            placeholder:"Enter URL here...",
-            oninput: move |evt| url.set(evt.value.clone()),
-        },
-        input {
-            r#type: "submit",
-            value :"Add",
-            onclick: move |_| {
-                log::error!("Curr value: {url}");
-                let di = cx.spawn({
-                    let cid = chparams.cid;
-                    let val = url.to_string();
-                    async move{
-                        match subscribe(cid, val).await{
-                            Ok(_) => {
-                                log::error!("Hooray!");
-                            },
-                            Err(e) => {
-                                log::error!("{:#?} \n. daman.", e)
-                            }
-                        }
-                    }
-                });
+        div{
+            padding:"0 15px",
+            h1{
+                "Settings"
             }
-        }
-
-        match subs.value(){
-            Some(Ok(val)) => {
-                rsx!(table{
-                    for (i, ele) in val.iter().enumerate(){
-                        tr{
-                            td{
-                                onclick: |_| {
-                                    cx.spawn({
-                                        let cid = ele.cid;
-                                        let pid = ele.pid;
-
-                                        async move{
-                                            match unsubscribe(cid, pid).await{
-                                                Ok(_) => {
-                                                    log::error!("Hooray!");
-                                                },
-                                                Err(e) => {
-                                                    log::error!("{:#?} \n. daman.", e)
+            h2{
+                margin_top:"20px",
+                "Subscribed Feeds"
+            }
+    
+            div{
+                margin:"20px auto",
+                width: "96%",
+    
+                input{
+                    name: "url",
+                    style: "width:80%;height:33px;",
+                    border: "1px solid black",
+                    border_right: "none",
+                    value: "{url}",
+                    placeholder:"Enter URL here...",
+                    oninput: move |evt| url.set(evt.value.clone()),
+                },
+                input {
+                    r#type: "submit",
+                    style: "width:20%;height:33px;",
+                    value :"Add",
+                    border_radius: 0,
+                    border: "1px solid black",
+                    border_left: "none",
+                    onclick: move |_| {
+                        cx.spawn({
+                            let cid = chparams.cid;
+                            let val = url.to_string();
+                            let subs = subs.clone();
+                            async move {
+                                match subscribe(cid, val).await{
+                                    Ok(_) => {
+                                        subs.restart();
+                                    },
+                                    Err(_) => {
+                                        log::error!("Failed..")
+                                    }
+                                }
+                            }
+                        })
+                    }
+                }
+            }
+    
+            match subs.value(){
+                Some(Ok(val)) => {
+                    rsx!(table{
+                        margin_top:"20px",
+                        for (i, ele) in val.iter().enumerate(){
+                            tr{
+                                td{
+                                    cursor: "pointer",
+                                    onclick: |_| {
+                                        cx.spawn({
+                                            let cid = ele.cid;
+                                            let pid = ele.pid;
+                                            let subs = subs.clone();
+    
+                                            async move{
+                                                match unsubscribe(cid, pid).await{
+                                                    Ok(_) => {
+                                                        subs.restart();
+                                                    },
+                                                    Err(e) => {
+                                                        log::error!("{:#?} \n. daman.", e)
+                                                    }
                                                 }
                                             }
-                                        }
-                                    });
-                                },
-                                "{ele.name} ({ele.url})"
+                                        });
+                                    },
+                                    p{
+                                        padding_left:"20px",
+                                        margin:"0px",
+                                        height:"34px",
+                                        line_height:"34px",
+                                        "{ele.name} ({ele.url})"
+                                    }
+                                }
                             }
                         }
-                    }
-                })
+                    })
+                }
+                _ => {
+                    rsx!("loading.")
+                }
             }
-            _ => {
-                rsx!("loading.")
+    
+            hr{ margin_top: "20px" }
+            div{
+                text_align:"center",
+                h2{
+                    text_decoration:"None",
+                    margin_top: "40px",
+                    "DANGER ZONE!!!"
+                }
+                button{
+                    color: "black",
+                    cursor: "pointer",
+                    font_family: "\"Patua One\", serif",
+                    font_size: "14px",
+                    background_color: "white",
+                    padding: "13px 10px",
+                    border: "3px solid black",
+                    margin_top: "40px",
+                    onclick: move |_| {
+                        cx.spawn({
+                            let cid = chparams.cid;
+                            let nav = nav.clone();
+    
+                            async move{
+                                match delete_channel(uid, cid).await{
+                                    Ok(_) => {
+                                        log::error!("Hooray!");
+                                        nav.push(Route::Settings {  });
+                                    },
+                                    Err(e) => {
+                                        log::error!("{:#?} \n. daman.", e)
+                                    }
+                                }
+                            }
+                        });
+                    },
+                    "DELETE CHANNEL"
+                }
             }
         }
     )

@@ -11,7 +11,7 @@ mysql = "24.0.0"
 serde = { version = "1.0.196", features = ["derive"] }
 tokio = { version = "1.36.0", features = ["full"] }
 roxmltree = { version = "0.19.0" }
-reqwest = "0.11.24"
+reqwest = { version = "0.11.24", features = ["cookies"] }
 chrono = { version = "0.4.33", features = ["serde", "alloc"] }
 scraper = "0.18.1"
 mysql_common = { version = "0.30.6", features = ["chrono"] }
