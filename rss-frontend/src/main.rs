@@ -1,9 +1,9 @@
-// TODO: alerts, cookies
+// TODO: cookies, loading anims
 
 #![allow(non_snake_case)]
 mod querystructs;
 use log::LevelFilter;
-use dioxus::{html::EventData, prelude::*};
+use dioxus::prelude::*;
 use dioxus_router::prelude::*;
 use rss_frontend::*;
 use querystructs::*;
@@ -11,8 +11,17 @@ use chrono::{DateTime, Local};
 
 #[derive(Routable, PartialEq, Debug, Clone)]
 pub enum Route{
-    #[route("/")]
-    DailyFeed {},
+    #[layout(NavBar)]
+        #[route("/")]
+        DailyFeed {},
+
+
+        #[route("/settings")]
+        Settings {},
+
+        #[route("/all")]
+        AllFeed {},
+    #[end_layout]
 
     #[route("/article?:article_params")]
     Article{
@@ -23,9 +32,6 @@ pub enum Route{
     ChannelSetting{
         chparams: ChParams,
     },
-
-    #[route("/settings")]
-    Settings {},
 
     #[route("/set")]
     Set{},
@@ -44,12 +50,37 @@ fn main(){
 }
 
 fn App(cx: Scope) -> Element {
-    // todo: hardcoded uid
+    // TODO: hardcoded uid - related to cookies
     use_shared_state_provider(cx, || UID(1));
     render!{
         Router::<Route>{}
     }
 }
+
+#[component]
+fn NavBar(cx: Scope) -> Element {
+    render! {
+        nav {
+            div { Link { to: Route::DailyFeed {}, "Today" } }
+            div { Link { to: Route::AllFeed {}, "All" } }
+            div {
+                float: "right",
+                margin_right:"20px",
+                Link{
+                    to: Route::Settings {},
+                    img{
+                        src:"./assets/cog.png",
+                        style: "height:30px;",
+                        position: "relative",
+                        top: "7px",
+                    }
+                }   
+            }
+        }
+        Outlet::<Route> {}
+    }
+}
+
 #[component]
 fn Set(cx: Scope) -> Element{
     let fut = use_future(cx, (), |_| set_pref());
@@ -81,65 +112,46 @@ fn Get(cx: Scope) -> Element{
 #[component]
 fn DailyFeed(cx: Scope) -> Element{
     let uid = use_shared_state::<UID>(cx).unwrap().read().0;
-    let fut = use_future(cx, (), |_| get_channels(uid));
+    let channel_future = use_future(cx, (), |_| get_channels(uid));
+    let cid = use_state(cx, || 1);
+    let post_future = use_future(cx, cid, |cid| get_daily_feed(*cid));
     
-    match fut.value() {
+    match channel_future.value() {
         Some(Ok(channels)) => {
             let ch1 = channels.get(0);
             match ch1{
                 Some(ch) => {
-                    let cid = use_state(cx, || ch.cid);
-                    let post_fut = use_future(cx, cid, |cid| get_daily_feed(*cid));
+                    cid.set(ch.cid);
                     cx.render(
                         rsx!{
-
                             div{
                                 display: "flex",
                                 align_items: "center",
                                 margin_bottom: "40px",
-                                div{
-                                    h1{
-                                        "Today's Feed:"
-                                    }
-                                }
+                                margin_top:"20px",
                                 div {
                                     class: "fancy-select",
                                     select{
                                         all: "unset",
                                         class: "fancy-select",
-                                        margin_left: "20px",
                                         font_family: "\"Patua One\", serif",
                                         font_size: "20px",
-                                        background: "#D9D9D9",
+                                        background: "var(--light-secondary)",
                                         padding: "5px 32px 5px 10px",
                                         onchange: |e| {
                                             let new_cid = &e.value.parse::<u64>().unwrap();
-                                            log::error!("New cid: {new_cid}");
                                             cid.set(*new_cid);
                                         },
                                         for ch in channels {
                                             option{
-                                                // font_family: "\"Patua One\", serif",
                                                 value: ch.cid as i64,
                                                 "{ch.name}"
                                             }
                                         }
                                     }
                                 }
-                                // reminder for blog lol: talk about how it was kinda annoying to do a simple thing like this\
-                                div {
-                                    margin_left: "auto",
-                                    margin_right: "30px",
-                                    Link{
-                                        to: Route::Settings {},
-                                        img{
-                                            src:"./assets/cog.png",
-                                            width: "50px",
-                                        }
-                                    }   
-                                }
                             }
-                            match post_fut.state(){
+                            match post_future.state(){
                                 UseFutureState::Complete(value) => {
                                     match value {
                                         Ok(posts) => {
@@ -154,12 +166,12 @@ fn DailyFeed(cx: Scope) -> Element{
                                             }
                                         },
                                         Err(e) => {
-                                            rsx!{"failed to load, bro."}
+                                            rsx!{"failed to load..."}
                                         }
                                     }
                                 },
                                 _ => {
-                                    rsx!{"loading.."}
+                                    rsx!{"loading feed.."}
                                 }
                             }
                         }
@@ -171,10 +183,10 @@ fn DailyFeed(cx: Scope) -> Element{
             }
         },
         Some(Err(e)) => {
-            render!("failed loading...")
+            render!("failed loading channels...")
         }
         None => {
-            render!("loading...")
+            render!("loading channels...")
         }
     }
 }
@@ -209,6 +221,72 @@ fn FeedItem(cx: Scope, post: Post) -> Element{
         }
     }
 }
+#[component]
+fn AllFeed(cx: Scope) -> Element{
+    // use future?
+    let posts: &UseState<Vec<Post>> = use_state(cx, || vec![]);
+    let counter = use_state(cx, || 0);
+    const INCREMENT: u64 = 10;
+    use_future(cx, (counter,), |(counter,)| {
+        let posts = posts.to_owned();
+        let err_eval = use_eval(cx).to_owned();
+        async move {
+            match get_all_posts(*counter).await {
+                Ok(mut p) => {
+                    posts.with_mut(|x| {
+                        (*x).append(&mut p);
+                    });
+                },
+                Err(e) => {
+                    err_eval(ERROR_ALERT_SCRIPT).unwrap();
+                    log::error!("{e}");
+                }
+            }
+        }
+    });
+
+    
+    let create_eval = use_eval(cx);
+
+    // You can create as many eval instances as you want
+    let eval = create_eval(
+        r#"
+        const handleInfiniteScroll = () => {
+
+            const endOfPage = window.innerHeight + window.pageYOffset >= document.body.offsetHeight;
+            dioxus.send(endOfPage);
+          
+          };
+          window.addEventListener("scroll", handleInfiniteScroll);
+          // snippet taken more or less as a whole from:
+          // https://webdesign.tutsplus.com/how-to-implement-infinite-scrolling-with-javascript--cms-37055t
+        "#,
+    )
+    .unwrap();
+
+    use_future(cx, (), |_| {
+        to_owned![eval];
+        let counter = counter.to_owned();
+        async move {
+            loop {
+                let message = eval.recv().await.unwrap();
+                if let "true" = message.to_string().as_str() {
+                    // modify counter state, so that future restarts, getting more posts
+                    counter.modify(|x| x + INCREMENT);
+                }
+            }
+        }
+    });
+
+    render!{
+        div{
+            margin_top: "40px",
+            for item in posts.iter() {
+                FeedItem { post: item.clone() }
+            }
+        }
+    }
+}
 
 #[component]
 fn Article(cx: Scope, article_params: ArticleParams) -> Element {
@@ -225,7 +303,7 @@ fn Article(cx: Scope, article_params: ArticleParams) -> Element {
                     let date_formatted = date.format("%a, %b %d %Y");
                     let time_formatted = date.format("%r");
                     rsx!{
-                        div{ 
+                        article{ 
                             padding_bottom:"20px",
                             border_bottom: "3px dashed #808080",
                             div {
@@ -241,7 +319,7 @@ fn Article(cx: Scope, article_params: ArticleParams) -> Element {
                             div {
                                 p{
                                     match content {
-                                        Some(val) => rsx!{"{val}"},
+                                        Some(val) => rsx!{ div{ dangerous_inner_html: "{val}" }},
                                         None => rsx!{"{description}"}
                                     }
                                 }
@@ -259,7 +337,6 @@ fn Article(cx: Scope, article_params: ArticleParams) -> Element {
                                 "Article Link"
                             }
                         }
-                        // TODO: matching here to selectively show this button
                         if **scrape {
                             rsx!{
                                 div {
@@ -346,6 +423,7 @@ fn Settings(cx: Scope) -> Element{
                 rsx!{
                     div{
                         padding:"0 15px",
+                        margin_top: "20px",
                         h1{
                             "Settings"
                         }
@@ -357,10 +435,11 @@ fn Settings(cx: Scope) -> Element{
                         div{
                             margin:"20px auto",
                             width: "96%",
-
+                            class: "fw-input",
                             input{
                                 name: "channel_name",
                                 style: "width:80%;height:33px;",
+                                box_sizing: "border-box",
                                 border: "1px solid black",
                                 border_right: "none",
                                 value: "{ch_name}",
@@ -377,6 +456,7 @@ fn Settings(cx: Scope) -> Element{
                                     cx.spawn({
                                         let val = ch_name.to_string();
                                         let channels = channels.clone();
+                                        let err_eval = use_eval(cx).to_owned();
 
                                         async move{
                                             match create_channel(uid, val).await{
@@ -384,7 +464,8 @@ fn Settings(cx: Scope) -> Element{
                                                     channels.restart()
                                                 },
                                                 Err(e) => {
-                                                    log::error!("{:#?} \n. daman.", e)
+                                                    err_eval(ERROR_ALERT_SCRIPT).unwrap();
+                                                    log::error!("{e}");
                                                 }
                                             }
                                         }
@@ -433,6 +514,41 @@ fn ChannelSetting(cx: Scope, chparams: ChParams) -> Element{
     let uid = use_shared_state::<UID>(cx).unwrap().read().0;
     let nav = use_navigator(cx);
 
+    let create_eval = use_eval(cx);
+    let alert_box = |text| {
+        format!(
+            r#"
+            swal("Are you sure you want to delete this {text}?", {{
+                buttons: {{
+                    cancel: {{
+                        text: "Cancel",
+                        value: false,
+                        visible: true,
+                    }},
+                        confirm: {{
+                        text: "Delete",
+                        value: true,
+                        visible: true,
+                    }}
+                }},
+            }})
+            .then((value) => {{
+                switch (value) {{
+                    case true:
+                        dioxus.send(true);
+                        console.log("true");
+                    case false:
+                        dioxus.send(false);
+                        console.log("false");
+                }}
+            }})
+            ;
+            "#
+        )
+    };
+
+    
+
     render!(
         div{
             padding:"0 15px",
@@ -447,6 +563,7 @@ fn ChannelSetting(cx: Scope, chparams: ChParams) -> Element{
             div{
                 margin:"20px auto",
                 width: "96%",
+                class: "fw-input",
     
                 input{
                     name: "url",
@@ -455,6 +572,7 @@ fn ChannelSetting(cx: Scope, chparams: ChParams) -> Element{
                     border_right: "none",
                     value: "{url}",
                     placeholder:"Enter URL here...",
+                    box_sizing: "border-box",
                     oninput: move |evt| url.set(evt.value.clone()),
                 },
                 input {
@@ -469,13 +587,16 @@ fn ChannelSetting(cx: Scope, chparams: ChParams) -> Element{
                             let cid = chparams.cid;
                             let val = url.to_string();
                             let subs = subs.clone();
+                            let err_eval = use_eval(cx).to_owned();
+
                             async move {
                                 match subscribe(cid, val).await{
                                     Ok(_) => {
                                         subs.restart();
                                     },
-                                    Err(_) => {
-                                        log::error!("Failed..")
+                                    Err(e) => {
+                                        err_eval(ERROR_ALERT_SCRIPT).unwrap();
+                                        log::error!("{e}");
                                     }
                                 }
                             }
@@ -492,19 +613,26 @@ fn ChannelSetting(cx: Scope, chparams: ChParams) -> Element{
                             tr{
                                 td{
                                     cursor: "pointer",
-                                    onclick: |_| {
+                                    onclick: move |_| {
+                                        let alert = alert_box("subscription");
                                         cx.spawn({
                                             let cid = ele.cid;
                                             let pid = ele.pid;
                                             let subs = subs.clone();
+                                            let eval = create_eval(&alert).unwrap();
+                                            let err_eval = use_eval(cx).to_owned();
     
                                             async move{
-                                                match unsubscribe(cid, pid).await{
-                                                    Ok(_) => {
-                                                        subs.restart();
-                                                    },
-                                                    Err(e) => {
-                                                        log::error!("{:#?} \n. daman.", e)
+                                                let message = eval.recv().await.unwrap();
+                                                if let "true" = message.to_string().as_str() {
+                                                    match unsubscribe(cid, pid).await{
+                                                        Ok(_) => {
+                                                            subs.restart();
+                                                        },
+                                                        Err(e) => {
+                                                            err_eval(ERROR_ALERT_SCRIPT).unwrap();
+                                                            log::error!("{e}");
+                                                        }
                                                     }
                                                 }
                                             }
@@ -545,18 +673,24 @@ fn ChannelSetting(cx: Scope, chparams: ChParams) -> Element{
                     border: "3px solid black",
                     margin_top: "40px",
                     onclick: move |_| {
+                        let alert = alert_box("channel");
                         cx.spawn({
                             let cid = chparams.cid;
                             let nav = nav.clone();
+                            let eval = create_eval(&alert).unwrap();
+                            let err_eval = use_eval(cx).to_owned();
     
                             async move{
-                                match delete_channel(uid, cid).await{
-                                    Ok(_) => {
-                                        log::error!("Hooray!");
-                                        nav.push(Route::Settings {  });
-                                    },
-                                    Err(e) => {
-                                        log::error!("{:#?} \n. daman.", e)
+                                let message = eval.recv().await.unwrap();
+                                if let "true" = message.to_string().as_str() {
+                                    match delete_channel(uid, cid).await{
+                                        Ok(_) => {
+                                            nav.push(Route::Settings {  });
+                                        },
+                                        Err(e) => {
+                                            err_eval(ERROR_ALERT_SCRIPT).unwrap();
+                                            log::error!("{e}");
+                                        }
                                     }
                                 }
                             }
@@ -568,3 +702,8 @@ fn ChannelSetting(cx: Scope, chparams: ChParams) -> Element{
         }
     )
 }
+
+const ERROR_ALERT_SCRIPT: &str = r#"
+swal("Unfortunately, an error occured. :(");
+;
+"#;

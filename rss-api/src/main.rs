@@ -1,5 +1,6 @@
-mod logger;
-mod scraper;
+use rss_api::{
+    database::DatabaseConnection, logger, rss_parser, web_scraper, Channel, Post, Subscription,
+};
 
 use axum::{
     debug_handler,
@@ -10,25 +11,19 @@ use axum::{
     Router,
 };
 use http::{
-    header::{ACCEPT, ACCESS_CONTROL_ALLOW_CREDENTIALS, AUTHORIZATION, CONTENT_TYPE, SET_COOKIE},
-    HeaderValue,
-};
-use http::{
     header::{
-        ACCESS_CONTROL_ALLOW_HEADERS, ACCESS_CONTROL_ALLOW_METHODS, ACCESS_CONTROL_ALLOW_ORIGIN,
+        ACCEPT, ACCESS_CONTROL_ALLOW_CREDENTIALS, ACCESS_CONTROL_ALLOW_HEADERS,
+        ACCESS_CONTROL_ALLOW_METHODS, ACCESS_CONTROL_ALLOW_ORIGIN, AUTHORIZATION, CONTENT_TYPE,
+        SET_COOKIE,
     },
-    Method,
+    HeaderValue, Method,
 };
-use reqwest::cookie::Jar;
-use rss_api::{database::DatabaseConnection, rss_parser, Channel, Post, Subscription};
 use serde::Deserialize;
 use std::collections::HashMap;
 use tower::ServiceBuilder;
-use tower_http::cors::{AllowMethods, AllowOrigin, Any, CorsLayer};
-use tower_http::trace::TraceLayer;
+use tower_http::{cors::CorsLayer, trace::TraceLayer};
 use tracing::error;
-use tracing_subscriber::prelude::*;
-use tracing_subscriber::{filter, layer::Layer};
+use tracing_subscriber::{filter, layer::Layer, prelude::*};
 
 #[derive(Clone)]
 struct Appstate {
@@ -162,7 +157,7 @@ async fn read(
     };
 
     if to_scrape {
-        let res = scraper::scrape(&mut post).await;
+        let res = web_scraper::scrape(&mut post).await;
         match res {
             Ok(_) => Ok(Json(post)),
             // LOG THIS!
@@ -375,16 +370,9 @@ async fn delete_channel(
 }
 
 // TODO:
-// STRIP HTML FROM TEXT
-
-// FURTHER IN THE FUTURE: AUTHENTICATION?
-
-// FALLBACK:
-// I can't implement readerview myself
-// Thinking of some options:
-// -- Run a separate container running readerview code, and pass in my data
-// -- Run a separate container with dragnet, query it somehow.
+// nicer formatting in the scraper
+// AUTHENTICATION?
+// images? maybe? idk.
 
 // IMPLEMENT LOGGING: CT'D: MACRO TO COMPOSE, AND CTOR TAKING IN KWARGS
-// macro for creating scrapers
 // END TODO

@@ -2,25 +2,33 @@
 <html>
 <head>
   <title>SimpRSS</title>
+  <script>
+    if (typeof navigator.serviceWorker !== 'undefined') {
+      navigator.serviceWorker.register('sw.js')
+    }
+  </script>
+  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
   <meta content="text/html;charset=utf-8" http-equiv="Content-Type" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta charset="UTF-8" />
+  <link rel="manifest" href="./assets/manifest.json"/>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bitter:ital,wght@0,100..900;1,100..900&family=Patua+One&display=swap">
 <link rel="stylesheet" href="./assets/style.css">
 
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bitter:ital,wght@0,100..900;1,100..900&family=Patua+One&display=swap">
+<link rel="stylesheet" href="./assets/style.css">
 </head>
 <body>
-  <div id="main"></div>
-  <script type="module">
+  <div id="main"></div>  
+<script type="module">
     import init from "/./assets/dioxus/rss-frontend.js";
     init("/./assets/dioxus/rss-frontend_bg.wasm").then(wasm => {
       if (wasm.__wbindgen_start == undefined) {
         wasm.main();
       }
     });
-  </script>
-  
-</body>
+    </script>
+    </body>
 </html><script>// Dioxus-CLI
 // https://github.com/DioxusLabs/cli
 

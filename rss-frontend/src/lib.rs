@@ -166,3 +166,8 @@ pub async fn get_pref() -> Result<String, String> {
     let endpoint = format!("{}{}",API_URL , "get");
     reqwest::get(&endpoint).await.map_err(|e| e.to_string())?.json().await.map_err(|e| e.to_string())
 }
+
+pub async fn get_all_posts(offset: u64) -> Result<Vec<Post>, String> {
+    let endpoint = format!("{}{}",API_URL , format!("all?cid=1&offset={offset}"));
+    reqwest::get(&endpoint).await.map_err(|e| e.to_string())?.json().await.map_err(|e| e.to_string())
+}

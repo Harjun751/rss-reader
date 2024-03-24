@@ -1,0 +1,133 @@
+:root{
+    --light-bg: #EEE;
+    --light-text-secondary: #808080;
+    --light-secondary: #D9D9D9;
+}
+
+a {
+    text-decoration: none;
+    color: unset;
+}
+
+html{
+    background-color: var(--light-bg);
+    box-sizing: border-box;
+}
+
+.fancy-select::after {
+    content: "";
+    border: solid black;
+    border-width: 0 2px 2px 0;
+    display: inline-block;
+    padding: 5px;
+    transform: rotate(45deg);
+    -webkit-transform: rotate(45deg);
+    position: relative;
+    right: 22px;
+    bottom: 3px;
+}
+
+h1{
+    font-size:20px;
+    font-family: "Patua One", serif;
+    margin: 0
+}
+
+h2{
+    font-size:18px;
+    font-family: "Patua One", serif;
+    text-decoration: underline;
+    margin: 0;
+    font-weight: 500;
+}
+
+p {
+    line-height: 24px;
+    font-size: 16px;
+    margin-top: 7px;
+    margin-bottom: 0px;
+    font-family: "Bitter", serif;
+}
+
+small{
+    font-size: 14px;
+    margin-top: 7px;
+    color: var(--light-text-secondary);
+    font-family: "Bitter", serif;
+}
+
+table{
+    width: 96%;
+    margin: auto;
+}
+
+tr{
+    height: 34px;
+    padding-left:20px;
+}
+
+tr{
+    background-color: white;
+}
+tr:nth-child(even) {
+    background-color: #dddddd;
+}
+
+td{
+    font-size: 16px;
+    font-family: "Bitter", serif;
+    padding-left:20px;
+}
+
+article{
+    max-width: 680px;
+    margin: auto;
+}
+
+nav{
+    height: 46px;
+    background-color: var(--light-secondary);
+    margin-top: -8px;
+    margin-left: -8px;
+    width: calc(100% + 16px);
+}
+
+nav div{
+    display:inline-block;
+    height:46px;
+    font-size:20px;
+    line-height: 46px;
+    font-family: "Patua One", serif;
+    margin-left:20px;
+}
+
+nav .active {
+    color: red;
+}
+
+.fw_input{
+    font-family: "Patua One", serif;
+}
+
+.swal-modal {
+    border: 3px solid black;
+    border-radius: 0;
+    font-family: "Patua One", serif;
+  }
+  
+.swal-button{
+font-family: "Patua One", serif;
+border-radius: 0;
+}
+
+.swal-button--confirm{
+background: white;
+color: black;
+border: solid 3px black;
+}
+
+.swal-button--cancel{
+background: var(--light-bg);
+color: var(--light-text-secondary);
+border: solid 3px #d9d9d9;
+}

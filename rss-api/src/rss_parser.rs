@@ -231,7 +231,6 @@ fn parse_rss<'a>(
     }
     Ok(vec)
 }
-
 /// parse atom returns a vector of posts or an error string.
 fn parse_atom<'a>(
     doc: roxmltree::Document,
@@ -293,14 +292,24 @@ fn parse_atom<'a>(
             _ => Utc::now(),
         };
 
-        let content = nodes
-            .iter()
-            .find(|x| x.has_tag_name("content"))
-            .map(|x| x.text());
-
+        let content = nodes.iter().find(|x| x.has_tag_name("content"));
+        let mut raw_content: Option<String> = None;
         let content = match content {
-            Some(Some(c)) => Some(c.to_owned()),
-            _ => None,
+            Some(node) => {
+                let text = node.text();
+                match text {
+                    Some(text) => match node.attribute("type") {
+                        Some(val) if val == "html" => {
+                            let cleaned = web_scraper::clean_html(text, None);
+                            raw_content = Some(cleaned.raw.to_string());
+                            Some(cleaned.to_string())
+                        }
+                        _ => Some(text.to_string()),
+                    },
+                    None => None,
+                }
+            }
+            None => None,
         };
 
         let description = nodes
@@ -311,13 +320,20 @@ fn parse_atom<'a>(
         let description = match description {
             Some(Some(t)) => t.to_owned(),
             _ => {
-                // Create the description field from content if possible
-                match &content {
+                // Create the description field
+                // first check raw content to make description. Then, if not, use content
+                match raw_content {
                     Some(val) => {
-                        let len = std::cmp::min(100, val.len());
+                        let len = std::cmp::min(250, val.len());
                         val[0..len].to_string()
                     }
-                    None => "[No description provided]".to_string(),
+                    None => match &content {
+                        Some(val) => {
+                            let len = std::cmp::min(250, val.len());
+                            val[0..len].to_string()
+                        }
+                        None => "[No description provided]".to_string(),
+                    },
                 }
             }
         };

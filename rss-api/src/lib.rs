@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 pub mod database;
 pub mod logger;
 pub mod rss_parser;
+pub mod web_scraper;
 
 #[derive(Debug, Serialize)]
 pub struct Post {
@@ -68,7 +69,6 @@ impl Post {
 mod integrated_tests {
     use super::*;
     use database::DatabaseConnection;
-    use rss_parser;
 
     #[test]
     fn macro_test() {
