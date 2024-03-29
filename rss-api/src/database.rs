@@ -30,7 +30,12 @@ impl DatabaseConnection {
             Ok(None) => {
                 let name = match validate_feed(&url).await {
                     Ok(val) => val,
-                    Err(e) => return Err(DetailedError::new(e)),
+                    Err(e) => {
+                        return Err(DetailedError::new_descriptive(
+                            e,
+                            "Could not validate feed: ",
+                        ))
+                    }
                 };
                 let query = match conn.prep("INSERT INTO publisher(url, name) VALUES (:url, :name)")
                 {

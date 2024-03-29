@@ -54,15 +54,28 @@ impl<'a> Visit for Visitor<'a> {
 #[derive(Debug)]
 pub struct DetailedError {
     trace: Backtrace,
-    desc: String,
-    // kwaargs: vec<String>,
+    pub desc: String,
+    pub friendly_desc: Option<String>, // kwaargs: vec<String>,
 }
 
 impl DetailedError {
     pub fn new(error: Box<dyn Error>) -> Self {
         let trace = Backtrace::force_capture();
         let desc = error.to_string();
-        DetailedError { trace, desc }
+        DetailedError {
+            trace,
+            desc,
+            friendly_desc: None,
+        }
+    }
+    pub fn new_descriptive(error: Box<dyn Error>, friendly_description: &str) -> Self {
+        let trace = Backtrace::force_capture();
+        let desc = error.to_string();
+        DetailedError {
+            trace,
+            desc,
+            friendly_desc: Some(friendly_description.to_string()),
+        }
     }
 }
 

@@ -42,7 +42,7 @@ async fn main() {
     let cors = CorsLayer::new()
         // allow requests from any origin
         .allow_methods([Method::GET, Method::POST, Method::DELETE, Method::OPTIONS])
-        .allow_origin("http://localhost:8080".parse::<HeaderValue>().unwrap())
+        .allow_origin("http://localhost:5173".parse::<HeaderValue>().unwrap())
         .allow_credentials(true)
         .allow_headers([
             AUTHORIZATION,
@@ -183,7 +183,7 @@ async fn sub(
             error!("{}", e);
             Err((
                 StatusCode::INTERNAL_SERVER_ERROR,
-                "We had some issues with the request...".to_string(),
+                e.friendly_desc.unwrap_or("".to_string()) + &e.desc,
             ))
         }
     }
@@ -373,6 +373,8 @@ async fn delete_channel(
 // nicer formatting in the scraper
 // AUTHENTICATION?
 // images? maybe? idk.
+// IMPORTANT GET ALL POSTS: SELECT EVERTHING
+// script to refresh feeds
 
 // IMPLEMENT LOGGING: CT'D: MACRO TO COMPOSE, AND CTOR TAKING IN KWARGS
 // END TODO

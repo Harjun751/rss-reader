@@ -1,0 +1,79 @@
+:root{
+  --light-bg: #EEE;
+  --light-text-secondary: #808080;
+  --light-secondary: #D9D9D9;
+}
+
+html{
+  background-color: var(--light-bg);
+  box-sizing: border-box;
+}
+
+h1{
+  font-size:20px;
+  font-family: "Patua One", serif;
+  margin: 0
+}
+
+h2{
+  font-size:18px;
+  font-family: "Patua One", serif;
+  text-decoration: underline;
+  margin: 0;
+  font-weight: 500;
+}
+
+p {
+  line-height: 24px;
+  font-size: 16px;
+  margin-top: 7px;
+  margin-bottom: 0px;
+  font-family: "Bitter", serif;
+}
+
+
+small{
+  font-size: 14px;
+  margin-top: 7px;
+  color: var(--light-text-secondary);
+  font-family: "Bitter", serif;
+}
+
+a{
+  all:unset;
+  cursor:pointer;
+}
+
+table{
+  width:100%;
+}
+table td {
+  padding: 0 20px;
+  height: 34px;
+  line-height: 34px;
+  font-family: "Bitter", serif;
+}
+
+
+.swal-modal {
+  border: 3px solid black;
+  border-radius: 0;
+  font-family: "Patua One", serif;
+}
+
+.swal-button{
+font-family: "Patua One", serif;
+border-radius: 0;
+}
+
+.swal-button--confirm{
+background: white;
+color: black;
+border: solid 3px black;
+}
+
+.swal-button--cancel{
+background: var(--light-bg);
+color: var(--light-text-secondary);
+border: solid 3px #d9d9d9;
+}

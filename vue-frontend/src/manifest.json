@@ -1,0 +1,12 @@
+{
+    "name": "My PWA",
+    "icons": [
+      {
+        "src": "/src/assets/cog.png",
+        "type": "image/png",
+        "sizes": "512x512"
+      }
+    ],
+    "start_url": "http://localhost:5173/",
+    "display": "standalone"
+}  
