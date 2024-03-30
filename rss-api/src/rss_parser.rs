@@ -3,6 +3,7 @@ use chrono::{NaiveDateTime, TimeZone};
 use roxmltree::Node;
 use std::error::Error;
 use std::sync::{Arc, Mutex};
+use tracing::{event, Level};
 
 /// get_whole_feed expects a list of urls to get feed data from
 pub async fn get_whole_feed(urls: Vec<Subscription>) -> Vec<Post> {
@@ -20,8 +21,11 @@ pub async fn get_whole_feed(urls: Vec<Subscription>) -> Vec<Post> {
                 Err(e) => {
                     // If this errors, means that the request to the url failed.
                     // We don't have to full-blown error here because other resources could still work.
-                    // LOG THIS!
-                    println!("DEBUG: Error {}", e.to_string());
+                    event!(
+                        Level::ERROR,
+                        backtrace = ?e,
+                        description = e.to_string()
+                    );
                     return;
                 }
             };
@@ -34,8 +38,14 @@ pub async fn get_whole_feed(urls: Vec<Subscription>) -> Vec<Post> {
                     // println!("Finished parsing feed for {}!", &url.url);
                 }
                 // Again, we don't have to error here as other rss feeds may still parse well => may be ill-formed xml
-                // LOG THIS!
-                Err(msg) => println!("DEBUG: unable to parse {}. \n Error: {}", sub.url, msg),
+                Err(e) => {
+                    event!(
+                        Level::ERROR,
+                        backtrace = ?e,
+                        description = e.to_string(),
+                        url = sub.url
+                    )
+                }
             }
         });
         handles.push(handle);
@@ -54,10 +64,13 @@ pub async fn get_whole_feed(urls: Vec<Subscription>) -> Vec<Post> {
 
     match data {
         Ok(data) => data,
-        Err(msg) => {
+        Err(e) => {
             // Mutex got poisoned somehow.
-            // LOG THIS!
-            println!("DEBUG: Poison error. {}", msg);
+            event!(
+                Level::ERROR,
+                backtrace = ?e,
+                description = e.to_string()
+            );
             vec![]
         }
     }

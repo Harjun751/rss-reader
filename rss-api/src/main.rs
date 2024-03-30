@@ -6,23 +6,18 @@ use axum::{
     debug_handler,
     extract::{Json, Query, State},
     http::StatusCode,
-    response::{AppendHeaders, IntoResponse},
     routing::{get, post},
     Router,
 };
 use http::{
-    header::{
-        ACCEPT, ACCESS_CONTROL_ALLOW_CREDENTIALS, ACCESS_CONTROL_ALLOW_HEADERS,
-        ACCESS_CONTROL_ALLOW_METHODS, ACCESS_CONTROL_ALLOW_ORIGIN, AUTHORIZATION, CONTENT_TYPE,
-        SET_COOKIE,
-    },
+    header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},
     HeaderValue, Method,
 };
 use serde::Deserialize;
 use std::collections::HashMap;
 use tower::ServiceBuilder;
-use tower_http::{cors::CorsLayer, trace::TraceLayer};
-use tracing::error;
+use tower_http::{cors::CorsLayer, services::ServeFile, trace::TraceLayer};
+use tracing::{event, Level};
 use tracing_subscriber::{filter, layer::Layer, prelude::*};
 
 #[derive(Clone)]
@@ -44,15 +39,7 @@ async fn main() {
         .allow_methods([Method::GET, Method::POST, Method::DELETE, Method::OPTIONS])
         .allow_origin("http://localhost:5173".parse::<HeaderValue>().unwrap())
         .allow_credentials(true)
-        .allow_headers([
-            AUTHORIZATION,
-            ACCEPT,
-            ACCESS_CONTROL_ALLOW_CREDENTIALS,
-            ACCESS_CONTROL_ALLOW_METHODS,
-            ACCESS_CONTROL_ALLOW_HEADERS,
-            ACCESS_CONTROL_ALLOW_ORIGIN,
-            CONTENT_TYPE,
-        ]);
+        .allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE]);
 
     let app = Router::new()
         .route("/all", get(all_posts))
@@ -63,8 +50,7 @@ async fn main() {
             "/channel",
             get(get_channels).post(post_channel).delete(delete_channel),
         )
-        .route("/set", post(set_scrape_preference))
-        .route("/get", get(get_scrape_preference))
+        .route_service("/logs", ServeFile::new("error_log.xml"))
         .with_state(Appstate { dbconn })
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()))
         .layer(cors);
@@ -99,28 +85,18 @@ async fn all_posts(
     match res {
         Ok(val) => Ok(Json(val)),
         Err(e) => {
-            // LOG THIS!
-            println!("Debug: {e}");
+            event!(
+                Level::ERROR,
+                backtrace = ?e,
+                description = e.desc,
+                uid,
+                offset
+            );
             Err((
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "We had some issues with the request...".to_string(),
             ))
         }
-    }
-}
-use axum_extra::extract::cookie::{Cookie, CookieJar};
-
-#[debug_handler]
-async fn set_scrape_preference(jar: CookieJar) -> Result<CookieJar, StatusCode> {
-    Ok(jar.add(Cookie::new("HEYHEY", "piss.piss even.")))
-}
-
-#[debug_handler]
-async fn get_scrape_preference(jar: CookieJar) -> String {
-    if let Some(session_id) = jar.get("HEYHEY") {
-        session_id.value().to_string()
-    } else {
-        "failed cuh".to_string()
     }
 }
 
@@ -144,13 +120,21 @@ async fn read(
     // To terminate the lifeline early and hence not cause this error, we execute get_post in its own scope and error handle there
     // At the end of the scope, `res` gets dropped and we can use the other await.
     let mut post = {
-        let res = state.dbconn.get_post(payload.id, Some(payload.url)).await;
+        let res = state
+            .dbconn
+            .get_post(payload.id, Some(payload.url.to_string()))
+            .await;
 
         match res {
             Ok(val) => val,
             Err(e) => {
-                // LOG THIS!
-                println!("Debug: {e}");
+                event!(
+                    Level::ERROR,
+                    backtrace = ?e,
+                    description = e.desc,
+                    url = ?payload.url,
+                    id = ?payload.id
+                );
                 return Err((
                     StatusCode::INTERNAL_SERVER_ERROR,
                     "Error resource doesn't exist".to_string(),
@@ -163,11 +147,18 @@ async fn read(
         let res = web_scraper::scrape(&mut post).await;
         match res {
             Ok(_) => Ok(Json(post)),
-            // LOG THIS!
-            Err(_) => Err((
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "Failed to scrape post!".to_string(),
-            )),
+            Err(e) => {
+                event!(
+                    Level::ERROR,
+                    backtrace = ?e,
+                    description = e.to_string(),
+                    url = ?post.link,
+                );
+                Err((
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "Failed to scrape post!".to_string(),
+                ))
+            }
         }
     } else {
         Ok(Json(post))
@@ -178,12 +169,19 @@ async fn sub(
     State(state): State<Appstate>,
     Json(payload): Json<Subscription>,
 ) -> Result<(), (StatusCode, String)> {
-    let res = state.dbconn.subscribe(payload.cid, payload.url).await;
+    let res = state
+        .dbconn
+        .subscribe(payload.cid, payload.url.to_string())
+        .await;
     match res {
         Ok(()) => Ok(()),
         Err(e) => {
-            // LOG THIS!
-            error!("{}", e);
+            event!(
+                Level::ERROR,
+                backtrace = ?e,
+                description = e.desc,
+                url = ?payload.url,
+            );
             Err((
                 StatusCode::INTERNAL_SERVER_ERROR,
                 e.friendly_desc.unwrap_or("".to_string()) + &e.desc,
@@ -198,13 +196,17 @@ async fn unsub(
 ) -> Result<(), (StatusCode, String)> {
     let res = state
         .dbconn
-        .unsubscribe(payload.pid.unwrap(), payload.cid)
+        .unsubscribe(payload.pid.unwrap_or(0), payload.cid)
         .await;
     match res {
         Ok(()) => Ok(()),
         Err(e) => {
-            // LOG THIS!
-            error!("{}", e);
+            event!(
+                Level::ERROR,
+                backtrace = ?e,
+                description = e.to_string(),
+                id = payload.pid,
+            );
             Err((
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "We had some issues with the request...".to_string(),
@@ -226,8 +228,11 @@ async fn get_subs(
             match urls {
                 Ok(vecs) => Ok(Json(vecs)),
                 Err(e) => {
-                    // LOG THIS!
-                    error!("{}", e);
+                    event!(
+                        Level::ERROR,
+                        backtrace = ?e,
+                        description = e.to_string(),
+                    );
                     Err((
                         StatusCode::INTERNAL_SERVER_ERROR,
                         "We had some issues with the request...".to_string(),
@@ -235,38 +240,40 @@ async fn get_subs(
                 }
             }
         }
-        Some(Err(e)) => {
+        Some(Err(_)) => {
             return Err((
                 StatusCode::BAD_REQUEST,
                 "Invalid ID value passed".to_string(),
             ))
         }
-        None => {
-            match params.get("uid").map(|x| x.parse::<u64>()) {
-                Some(Ok(uid)) => {
-                    let urls = state.dbconn.get_subbed_for_user(uid).await;
+        None => match params.get("uid").map(|x| x.parse::<u64>()) {
+            Some(Ok(uid)) => {
+                let urls = state.dbconn.get_subbed_for_user(uid).await;
 
-                    match urls {
-                        Ok(vecs) => Ok(Json(vecs)),
-                        Err(e) => {
-                            // LOG THIS!
-                            error!("{}", e);
-                            Err((
-                                StatusCode::INTERNAL_SERVER_ERROR,
-                                "We had some issues with the request...".to_string(),
-                            ))
-                        }
+                match urls {
+                    Ok(vecs) => Ok(Json(vecs)),
+                    Err(e) => {
+                        event!(
+                            Level::ERROR,
+                            backtrace = ?e,
+                            description = e.to_string(),
+                            uid = uid,
+                        );
+                        Err((
+                            StatusCode::INTERNAL_SERVER_ERROR,
+                            "We had some issues with the request...".to_string(),
+                        ))
                     }
                 }
-                Some(Err(e)) => {
-                    return Err((
-                        StatusCode::BAD_REQUEST,
-                        "Invalid ID value passed".to_string(),
-                    ))
-                }
-                None => return Err((StatusCode::BAD_REQUEST, "Invalid params!".to_string())),
             }
-        }
+            Some(Err(_)) => {
+                return Err((
+                    StatusCode::BAD_REQUEST,
+                    "Invalid ID value passed".to_string(),
+                ))
+            }
+            None => return Err((StatusCode::BAD_REQUEST, "Invalid params!".to_string())),
+        },
     }
 }
 
@@ -298,8 +305,12 @@ async fn feed(
     let res = state.dbconn.insert_posts(&data).await;
     if let Err(e) = res {
         // We don't need to necessarily return an error to the consumer here
-        // LOG THIS!
-        println!("DEBUG: ERROR INSERTING {}", e.to_string())
+        event!(
+            Level::ERROR,
+            backtrace = ?e,
+            description = e.to_string(),
+            // want to log data here but have to implement display i think. lazy rn.
+        );
     }
 
     Ok(Json(data))
@@ -323,8 +334,11 @@ async fn get_channels(
     match state.dbconn.get_channels_for_user(uid).await {
         Ok(channels) => Ok(Json(channels)),
         Err(e) => {
-            // LOG THIS!
-            println!("DEBUG: {e}");
+            event!(
+                Level::ERROR,
+                backtrace = ?e,
+                description = e.to_string(),
+            );
             Err((
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "We had an issue with the request..".to_string(),
@@ -338,7 +352,6 @@ struct CreateChannel {
     uid: u64,
     name: String,
 }
-
 #[debug_handler]
 async fn post_channel(
     State(state): State<Appstate>,
@@ -351,8 +364,11 @@ async fn post_channel(
     {
         Ok(_) => Ok(()),
         Err(e) => {
-            // LOG THIS!
-            println!("DEBUG: {e}");
+            event!(
+                Level::ERROR,
+                backtrace = ?e,
+                description = e.to_string(),
+            );
             Err((
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "We had an issue with the request..".to_string(),
@@ -388,8 +404,11 @@ async fn delete_channel(
     match state.dbconn.delete_channel_for_user(uid, cid).await {
         Ok(_) => Ok(()),
         Err(e) => {
-            // LOG THIS!
-            println!("DEBUG: {e}");
+            event!(
+                Level::ERROR,
+                backtrace = ?e,
+                description = e.to_string(),
+            );
             Err((
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "We had an issue with the request..".to_string(),
@@ -399,8 +418,5 @@ async fn delete_channel(
 }
 
 // TODO:
-// AUTHENTICATION?
 // script to refresh feeds
-
-// IMPLEMENT LOGGING: CT'D: MACRO TO COMPOSE, AND CTOR TAKING IN KWARGS
 // END TODO

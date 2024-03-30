@@ -2,7 +2,6 @@ use crate::logger::DetailedError;
 use crate::{rss_parser::validate_feed, Channel, Post, Subscription};
 use chrono::NaiveDateTime;
 use mysql::{params, prelude::Queryable, Pool};
-use std::error::Error;
 
 pub struct DatabaseConnection {
     pool: Pool,
@@ -22,8 +21,7 @@ impl DatabaseConnection {
             Err(e) => return Err(DetailedError::new(Box::new(e))),
         };
 
-        let res: Result<Option<u64>, mysql::error::Error> =
-            conn.exec_first(query, params! {"url"=>&url});
+        let res: Result<Option<u64>, mysql::Error> = conn.exec_first(query, params! {"url"=>&url});
 
         let id = match res {
             Ok(Some(id)) => id,
@@ -78,22 +76,24 @@ impl DatabaseConnection {
         }
     }
 
-    pub async fn get_subbed(&self, cid: u64) -> Result<Vec<Subscription>, mysql::Error> {
+    pub async fn get_subbed(&self, cid: u64) -> Result<Vec<Subscription>, DetailedError> {
         let mut conn = self.pool.get_conn().unwrap();
 
         let query = conn.prep("SELECT url, subscription.pid, name from subscription INNER JOIN publisher on subscription.pid=publisher.pid where cid=:cid")?;
 
-        conn.exec_map(query, params! {"cid" => cid}, |(url, pid, name)| {
-            Subscription {
-                cid: cid,
-                pid: pid,
-                url: url,
-                name: name,
-            }
-        })
+        Ok(
+            conn.exec_map(query, params! {"cid" => cid}, |(url, pid, name)| {
+                Subscription {
+                    cid: cid,
+                    pid: pid,
+                    url: url,
+                    name: name,
+                }
+            })?,
+        )
     }
 
-    pub async fn get_subbed_for_user(&self, uid: u64) -> Result<Vec<Subscription>, mysql::Error> {
+    pub async fn get_subbed_for_user(&self, uid: u64) -> Result<Vec<Subscription>, DetailedError> {
         let mut conn = self.pool.get_conn().unwrap();
 
         let query = conn.prep(
@@ -104,18 +104,20 @@ impl DatabaseConnection {
             ",
         )?;
 
-        conn.exec_map(query, params! {"uid" => uid}, |(url, pid, name)| {
-            Subscription {
-                // don't need cid for this response.
-                cid: 0,
-                pid: pid,
-                url: url,
-                name: name,
-            }
-        })
+        Ok(
+            conn.exec_map(query, params! {"uid" => uid}, |(url, pid, name)| {
+                Subscription {
+                    // don't need cid for this response.
+                    cid: 0,
+                    pid: pid,
+                    url: url,
+                    name: name,
+                }
+            })?,
+        )
     }
 
-    pub async fn insert_posts(&self, posts: &Vec<crate::Post>) -> Result<(), mysql::Error> {
+    pub async fn insert_posts(&self, posts: &Vec<crate::Post>) -> Result<(), DetailedError> {
         let mut conn = self.pool.get_conn().unwrap();
 
         conn.exec_batch(
@@ -140,7 +142,7 @@ impl DatabaseConnection {
         &self,
         id: Option<u64>,
         url: Option<String>,
-    ) -> Result<Post, Box<dyn Error>> {
+    ) -> Result<Post, DetailedError> {
         let mut conn = self.pool.get_conn().unwrap();
 
         let (query, params) = match id {
@@ -155,7 +157,11 @@ impl DatabaseConnection {
                     let p = params! {"url" => u};
                     (q, p)
                 }
-                None => return Err("Invalid parameters.".to_string().into()),
+                None => {
+                    return Err(DetailedError::new_with_message(
+                        "Invalid parameters passed!",
+                    ))
+                }
             },
         };
 
@@ -193,14 +199,14 @@ impl DatabaseConnection {
                 if let Some(post) = new_val {
                     Ok(post)
                 } else {
-                    Err("No post found!".to_string().into())
+                    Err(DetailedError::new_with_message("No posts found!"))
                 }
             }
-            Err(e) => Err(Box::new(e)),
+            Err(e) => Err(DetailedError::new(Box::new(e))),
         }
     }
 
-    pub async fn get_post_list(&self, uid: u64, offset: u64) -> Result<Vec<Post>, mysql::Error> {
+    pub async fn get_post_list(&self, uid: u64, offset: u64) -> Result<Vec<Post>, DetailedError> {
         let mut conn = self.pool.get_conn().unwrap();
 
         let query = conn.prep(
@@ -215,7 +221,7 @@ impl DatabaseConnection {
                 ",
         )?;
 
-        conn.exec_map(
+        Ok(conn.exec_map(
             query,
             params! {"uid" => uid, "offset" => offset},
             |(id, url, title, date_added, description, image, pid, name): (
@@ -240,10 +246,10 @@ impl DatabaseConnection {
                     publisher_name: Some(name),
                 }
             },
-        )
+        )?)
     }
 
-    pub async fn get_channels_for_user(&self, uid: u64) -> Result<Vec<Channel>, Box<dyn Error>> {
+    pub async fn get_channels_for_user(&self, uid: u64) -> Result<Vec<Channel>, DetailedError> {
         let mut conn = self.pool.get_conn()?;
 
         let query = conn.prep("SELECT cid, name FROM channel where uid=:uid")?;
@@ -264,24 +270,20 @@ impl DatabaseConnection {
         &self,
         uid: u64,
         name: String,
-    ) -> Result<(), mysql::error::Error> {
+    ) -> Result<(), DetailedError> {
         let mut conn = self.pool.get_conn()?;
 
         let query = conn.prep("INSERT INTO channel (uid, name) VALUES (:uid, :name)")?;
 
-        conn.exec_drop(query, params! {"uid" => uid, "name" => name})
+        Ok(conn.exec_drop(query, params! {"uid" => uid, "name" => name})?)
     }
 
-    pub async fn delete_channel_for_user(
-        &self,
-        uid: u64,
-        cid: u64,
-    ) -> Result<(), mysql::error::Error> {
+    pub async fn delete_channel_for_user(&self, uid: u64, cid: u64) -> Result<(), DetailedError> {
         let mut conn = self.pool.get_conn()?;
 
         let query = conn.prep("DELETE FROM channel WHERE uid=:uid and cid=:cid")?;
 
-        conn.exec_drop(query, params! {"uid" => uid, "cid" => cid})
+        Ok(conn.exec_drop(query, params! {"uid" => uid, "cid" => cid})?)
     }
 }
 

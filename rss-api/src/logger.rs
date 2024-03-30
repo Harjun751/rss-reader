@@ -1,10 +1,12 @@
-use std::backtrace::Backtrace;
-use std::error::Error;
-use std::fmt::{Display, Write};
-use std::fs::File;
-use std::io::Write as _;
-use tracing::Level;
-use tracing::{field::Visit, Subscriber};
+use chrono::Local;
+use std::{
+    backtrace::Backtrace,
+    error::Error,
+    fmt::{Debug, Display},
+    fs::File,
+    io::{prelude::*, SeekFrom},
+};
+use tracing::{field::Visit, Level, Subscriber};
 use tracing_subscriber::Layer;
 
 pub struct FileLogger;
@@ -16,46 +18,75 @@ impl<S: Subscriber> Layer<S> for FileLogger {
         _ctx: tracing_subscriber::layer::Context<'_, S>,
     ) {
         let mut my = Visitor {
-            string: &mut String::new(),
+            val_list: &mut vec![],
         };
         event.record(&mut my);
 
         match event.metadata().level() {
             &Level::ERROR => {
-                let info = format!("{}\n{}{}\n\n", "=".repeat(100), my.string, "=".repeat(100));
-                match &mut File::options().append(true).open("error_log.txt") {
-                    Ok(f) => match f.write(info.as_bytes()) {
-                        Ok(_) => (),
-                        Err(_) => {
-                            println!("UNABLE TO PRINT TO FILE! Printing to Stdout.\n{}", info)
-                        }
-                    },
-                    Err(_) => println!("UNABLE TO OPEN FILE! Printing to Stdout.\n{}", info),
+                match &mut File::options().read(true).write(true).open("error_log.xml") {
+                    Ok(file) => {
+                        // THERE HAS TO BE A BETTER WAY OF DOING THIS!!!
+
+                        file.seek(SeekFrom::Start(7)).unwrap();
+                        // Read data after the position
+                        let mut buffer = Vec::new();
+                        file.read_to_end(&mut buffer).unwrap();
+
+                        // Move back to the desired position
+                        file.seek(SeekFrom::Start(7)).unwrap();
+
+                        // Write the new data
+                        file.write_all(my.to_string().as_bytes()).unwrap();
+
+                        // Write back the data that was read
+                        file.write_all(&buffer).unwrap();
+                    }
+                    Err(e) => println!("UNABLE TO OPEN FILE! Printing to Stdout.\n{}", e),
                 };
             }
             _ => {
-                let info = format!("{}\n{}{}\n\n", "=".repeat(100), my.string, "=".repeat(100));
-                println!("{info}")
+                println!("{}", my.to_string())
             }
         }
     }
 }
 
 pub struct Visitor<'a> {
-    string: &'a mut String,
+    val_list: &'a mut Vec<KVP<'a>>,
+}
+struct KVP<'a> {
+    pub key: &'a str,
+    pub value: String,
 }
 
 impl<'a> Visit for Visitor<'a> {
     fn record_debug(&mut self, field: &tracing::field::Field, value: &dyn std::fmt::Debug) {
-        write!(self.string, "{} = {:?}\n", field.name(), value).unwrap();
+        println!("{}", format!("{:?}", value));
+        self.val_list.push(KVP {
+            key: field.name(),
+            value: format!("{:?}", value),
+        });
     }
 }
 
-#[derive(Debug)]
+impl<'a> ToString for Visitor<'a> {
+    fn to_string(&self) -> String {
+        let time = Local::now();
+        let mut formatted_string = format!("<error>\n\t<time>{}</time>\n", time);
+        for val in self.val_list.iter() {
+            let name = val.key;
+            formatted_string
+                .push_str(format!("\t<{name}>\n\t\t{}\n\t</{name}>\n", val.value).as_str())
+        }
+        formatted_string.push_str("</error>\n");
+        formatted_string
+    }
+}
 pub struct DetailedError {
     trace: Backtrace,
     pub desc: String,
-    pub friendly_desc: Option<String>, // kwaargs: vec<String>,
+    pub friendly_desc: Option<String>,
 }
 
 impl DetailedError {
@@ -77,12 +108,32 @@ impl DetailedError {
             friendly_desc: Some(friendly_description.to_string()),
         }
     }
+    pub fn new_with_message(error: &str) -> Self {
+        let trace = Backtrace::force_capture();
+        DetailedError {
+            trace,
+            desc: error.to_string(),
+            friendly_desc: None,
+        }
+    }
 }
 
 impl Error for DetailedError {}
 
+impl Debug for DetailedError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<![CDATA[{}]]>", self.trace.to_string())
+    }
+}
+
 impl Display for DetailedError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}\n BACKTRACE:\n{}", self.desc, self.trace)
+        write!(f, "<![CDATA[{}]]>", self.trace.to_string())
+    }
+}
+
+impl From<mysql::Error> for DetailedError {
+    fn from(value: mysql::Error) -> Self {
+        DetailedError::new(Box::new(value))
     }
 }
