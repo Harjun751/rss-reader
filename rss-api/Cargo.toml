@@ -21,3 +21,4 @@ tracing-subscriber = { version = "0.3.18", features = ["fmt"] }
 tracing = "0.1.40"
 http = "1.0.0"
 lazy_static = "1.4.0"
+axum-extra = { version = "0.9.3", features = ["cookie"] }

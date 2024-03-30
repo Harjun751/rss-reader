@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { get_all } from "../lib.js"
 import PostListItem from "../components/PostListItem.vue"
+import PostLoader from "../components/PostLoader.vue"
 
 const increment = 10;
 const offset = ref(0);
@@ -36,7 +37,7 @@ getPosts(offset.value)
 
 <template>
     <div>
-        <div v-if="loading">loading..</div>
+        <div v-if="loading"><PostLoader/></div>
         <div v-if="error">{{ error }}</div>
         <div v-if="posts">
             <div class="post-container">

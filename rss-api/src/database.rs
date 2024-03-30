@@ -93,6 +93,28 @@ impl DatabaseConnection {
         })
     }
 
+    pub async fn get_subbed_for_user(&self, uid: u64) -> Result<Vec<Subscription>, mysql::Error> {
+        let mut conn = self.pool.get_conn().unwrap();
+
+        let query = conn.prep(
+            " SELECT url, subscription.pid, publisher.name from subscription \
+            INNER JOIN publisher on publisher.pid=subscription.pid \
+            INNER JOIN channel on subscription.cid=channel.cid \
+            WHERE uid=:uid
+            ",
+        )?;
+
+        conn.exec_map(query, params! {"uid" => uid}, |(url, pid, name)| {
+            Subscription {
+                // don't need cid for this response.
+                cid: 0,
+                pid: pid,
+                url: url,
+                name: name,
+            }
+        })
+    }
+
     pub async fn insert_posts(&self, posts: &Vec<crate::Post>) -> Result<(), mysql::Error> {
         let mut conn = self.pool.get_conn().unwrap();
 
@@ -159,6 +181,7 @@ impl DatabaseConnection {
                     description: description,
                     enclosure: image,
                     pid: pid,
+                    publisher_name: None,
                 }
             },
         );
@@ -177,14 +200,16 @@ impl DatabaseConnection {
         }
     }
 
-    pub async fn get_post_list(&self, cid: u64, offset: u64) -> Result<Vec<Post>, mysql::Error> {
+    pub async fn get_post_list(&self, uid: u64, offset: u64) -> Result<Vec<Post>, mysql::Error> {
         let mut conn = self.pool.get_conn().unwrap();
 
         let query = conn.prep(
             " \
-                SELECT id, url, title, date_added, description, image, post.pid FROM post \
+                SELECT id, post.url, title, date_added, description, image, post.pid, publisher.name FROM post \
                 INNER JOIN subscription ON post.pid=subscription.pid \
-                WHERE cid=:cid \
+                INNER JOIN channel ON channel.cid=subscription.cid \
+                INNER JOIN publisher ON post.pid=publisher.pid \
+                WHERE uid=:uid \
                 ORDER BY date_added DESC \
                 LIMIT :offset, 10;
                 ",
@@ -192,8 +217,8 @@ impl DatabaseConnection {
 
         conn.exec_map(
             query,
-            params! {"cid" => cid, "offset" => offset},
-            |(id, url, title, date_added, description, image, pid): (
+            params! {"uid" => uid, "offset" => offset},
+            |(id, url, title, date_added, description, image, pid, name): (
                 u64,
                 String,
                 String,
@@ -201,6 +226,7 @@ impl DatabaseConnection {
                 String,
                 Option<String>,
                 u64,
+                String,
             )| {
                 Post {
                     id: id,
@@ -211,6 +237,7 @@ impl DatabaseConnection {
                     description: description,
                     enclosure: image,
                     pid: pid,
+                    publisher_name: Some(name),
                 }
             },
         )

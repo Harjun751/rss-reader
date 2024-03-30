@@ -18,6 +18,7 @@ pub struct Post {
     // enclosure is the link to a resource
     enclosure: Option<String>,
     pid: u64,
+    publisher_name: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -51,6 +52,7 @@ impl Post {
             content: None,
             enclosure: None,
             pid: 10000,
+            publisher_name: None,
         }
     }
 

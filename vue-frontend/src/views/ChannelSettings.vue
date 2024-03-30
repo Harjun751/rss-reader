@@ -41,37 +41,34 @@ async function subscribe(){
 }
 
 async function delete_ch(){
-    try{
-        // TODO: HARDCODED UID
-        swal("Are you sure you want to delete this channel?", {
-            buttons: {
-                cancel: {
-                    text: "Cancel",
-                    value: false,
-                    visible: true,
-                },
-                    confirm: {
-                    text: "Delete",
-                    value: true,
-                    visible: true,
-                }
+    swal("Are you sure you want to delete this channel?", {
+        buttons: {
+            cancel: {
+                text: "Cancel",
+                value: false,
+                visible: true,
             },
-        })
-        .then((value) => {
-            switch (value) {
-                case true:
-                    const del_res = delete_channel(1, route.params.id);
-                    del_res.then(() => {
-                        router.push({ name: 'settings'})
-                    })
-                case false:
-                    console.log(false);
+                confirm: {
+                text: "Delete",
+                value: true,
+                visible: true,
             }
-        })
-    } catch {
-        // TODO: proper catch error handling & error showing
-        swal("Unfortunately, an error occured.")
-    }
+        },
+    })
+    .then((value) => {
+        if (value){
+            return delete_channel(route.params.id)
+            .then(() => {
+                router.push({ name: 'settings'})
+            })
+            .catch((err) => {
+                throw err;
+            })
+        }
+    })
+    .catch((err) => {
+        swal("Unfortunately, an error occured: " + err.toString())
+    })
 }
 
 getData(route.params.id)
@@ -85,11 +82,14 @@ getData(route.params.id)
             <input id="text" v-model="feed_name" placeholder="Enter feed url..."/>
             <input id="submit" @click="subscribe" type="submit" value="Add"/>
         </div>
-        <div>
+        <div class="table-wrapper">
             <table v-if="subscriptions">
                 <tr v-for="sub in subscriptions" @click="unsubscribe(sub.pid)">
                     <td>
-                        {{ sub.name }} ({{ sub.url }})
+                        {{ sub.name }} | {{ sub.url }}
+                    </td>
+                    <td class="remove">
+                        <button @click="unsubscribe(sub.pid)">Remove</button>
                     </td>
                 </tr>
             </table>
@@ -124,15 +124,6 @@ div{
     border: 1px solid black;
     border-left: none;
 }
-
-table tr{
-  background-color: white;
-  cursor:pointer;
-}
-
-table tr:nth-child(even) {
-  background-color: #dddddd;
-}
 #danger{
     text-align: center;
 }
@@ -148,5 +139,13 @@ table tr:nth-child(even) {
     padding: 13px 10px;
     border: 3px solid black;
 }
-
+.remove button{
+    border: 1px solid black;
+    width:100%;
+    height:100%;
+}
+.remove{
+    padding:0;
+    width:20%;
+}
 </style>

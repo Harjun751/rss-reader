@@ -1,6 +1,8 @@
 <script setup>
 import { ref } from 'vue'
 import { get_channels, create_channel } from "../lib.js"
+import FallbackSettings from '@/components/FallbackSettings.vue'
+import router from '@/router';
 
 const loading = ref(true)
 const channels = ref(null)
@@ -9,8 +11,7 @@ const channel_name = ref("")
 
 async function getData(){
     try {
-        // TODO: uid shared state
-        channels.value = await get_channels(1)
+        channels.value = await get_channels()
     } catch (err) {
         error.value = err.toString()
     } finally {
@@ -20,14 +21,15 @@ async function getData(){
 
 async function createChannel(){
     try{
-        // TODO: uid shared state
-        await create_channel(1, channel_name.value);
+        await create_channel(channel_name.value);
         getData();
     } catch{
         swal("Unfortunately, an error occured :(")
     }
 }
-
+function navigate(id){
+    router.push({ name: 'channel', params: { id: id } })
+}
 getData()
 </script>
 
@@ -39,17 +41,16 @@ getData()
             <input id="text" v-model="channel_name" placeholder="Enter channel name..."/>
             <input @click="createChannel" id="submit" type="submit" value="Add"/>
         </div>
-        <div>
+        <div class="table-wrapper">
             <table>
-                <RouterLink :to="{name:'channel', params: { id: ch.cid }}" v-for="ch in channels">
-                    <tr >
-                        <td>
-                            {{ ch.name }}
-                        </td>
-                    </tr>
-                </RouterLink>
+                <tr v-for="ch in channels" @click="navigate(ch.cid)">
+                    <td>
+                        {{ ch.name }}
+                    </td>
+                </tr>
             </table>
         </div>
+        <FallbackSettings />
     </div>
 </template>
 
@@ -77,16 +78,5 @@ div{
     height:33px;
     border: 1px solid black;
     border-left: none;
-}
-table a{
-  background-color: white;
-}
-
-table a:nth-child(even) {
-  background-color: #dddddd;
-}
-
-a, tr{
-  display: block;
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div v-if="loading">Loading...</div>
+        <div v-if="channel_loading"><TodayLoader /></div>
         <div v-if="error">{{ error }}</div>
         <div class="channel-select-container" v-if="channels">
             <select v-model="selected" class="channel-select">
@@ -9,6 +9,7 @@
                 </option>
             </select>
         </div>
+        <PostLoader v-if="posts_loading" />
         <div class="post-container">
             <PostListItem :data="post" v-for="post in posts" />
         </div>
@@ -19,8 +20,11 @@
 import { ref, watch } from 'vue'
 import { get_channels, get_posts } from '../lib.js'
 import PostListItem from "../components/PostListItem.vue"
+import TodayLoader from '@/components/TodayLoader.vue';
+import PostLoader from '@/components/PostLoader.vue';
 
-const loading = ref(true)
+const channel_loading = ref(true)
+const posts_loading = ref(true)
 const posts = ref(null)
 const channels = ref(null)
 const selected = ref(null)
@@ -28,14 +32,13 @@ const error = ref(false)
 
 async function getData(){
     try {
-        // TODO: uid shared state
-        channels.value = await get_channels(1)
+        channels.value = await get_channels()
         let x = channels.value;
         selected.value = x[0].cid;
     } catch (err) {
         error.value = err.toString()
     } finally {
-        loading.value = false
+        channel_loading.value = false;
     }
 }
 
@@ -45,11 +48,12 @@ async function getPost(val){
     } catch (err) {
         error.value = err.toString()
     } finally {
-        loading.value = false
+        posts_loading.value = false
     }
 }
 
 watch(selected, (cid) => {
+    posts_loading.value = true;
     getPost(cid)
 })
 

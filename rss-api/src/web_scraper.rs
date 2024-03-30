@@ -80,6 +80,13 @@ pub fn clean_html(data: &str, selector: Option<&Selector>) -> CleanedHTML {
                         let text = "<p>".to_string() + &text + "</p>";
                         builder.push_str(&text);
                     }
+                    // this looks bad, maybe i'll change it in the future
+                    "img" => {
+                        if let Some(src) = ele.attr("src") {
+                            let text = format!("<img src=\"{}\"/>", src);
+                            builder.push_str(&text);
+                        }
+                    }
                     _ => {}
                 }
             }

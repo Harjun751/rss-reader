@@ -1,36 +1,44 @@
 <script setup>
 import { ref, watch } from 'vue'
-import { get_article } from "../lib.js"
+import { get_article, get_scrape_preference } from "../lib.js"
 import { useRoute } from 'vue-router';
+import ArticleLoader from "@/components/ArticleLoader.vue"
 
-const loading = ref(false)
+const loading = ref(true)
 const article = ref(null)
 const error = ref(null)
-const scrape = ref(false)
+const route = useRoute();
 
 async function getArticle(get_url, to_scrape){
     try{
         article.value = await get_article(get_url,to_scrape);
-        console.log(article.value)
+
     } catch(err){
         error.value = err.toString()
     } finally {
         loading.value = false
     }
 }
-const route = useRoute();
-getArticle(route.params.url, scrape.value)
 
-watch(scrape, (new_value) => {
-    article.value = null
-    loading.value = true
-    getArticle(route.params.url, new_value)
+// populate scrape with initial value from indexeddb
+const scrape = ref(false);
+get_scrape_preference(Number(route.query.pid)).then((val) => {
+    if (val!=null){
+        scrape.value = val;
+    }
+    getArticle(route.params.url, scrape.value)
+    watch(scrape, (new_value) => {
+        article.value = null
+        loading.value = true
+        getArticle(route.params.url, new_value)
+    })
 })
+
 </script>
 
 <template>
     <div>
-        <div v-if="loading">loading...</div>
+        <div v-if="loading"><ArticleLoader/></div>
         <div v-if="error">{{ error }}</div>
         <div v-if="article">
             <main v-if="article">
@@ -59,6 +67,21 @@ main{
     border-bottom: 3px dashed #808080;
     max-width: 680px;
     margin: auto;
+
+    animation: loaded 0.2s;
+}
+
+@keyframes loaded {
+    from{
+        background-color: var(--light-secondary);
+        filter: blur(4px);
+        border-radius: 15px;
+    }
+    to{
+        background-color: var(--light-bg);
+        filter: blur(0px);
+        border-radius: 0px;
+    }
 }
 a{
     font-family: "Patua One", serif;
@@ -87,5 +110,14 @@ a{
     display: block;
     margin: auto;
     margin-top: 20px;
+}
+</style>
+
+<style>
+img{
+    max-width:680px;
+    max-height:70vh;
+    display:block;
+    margin:auto;
 }
 </style>

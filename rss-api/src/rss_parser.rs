@@ -54,9 +54,9 @@ pub async fn get_whole_feed(urls: Vec<Subscription>) -> Vec<Post> {
 
     match data {
         Ok(data) => data,
-        // Mutex got poisoned somehow.
-        // LOG THIS!
         Err(msg) => {
+            // Mutex got poisoned somehow.
+            // LOG THIS!
             println!("DEBUG: Poison error. {}", msg);
             vec![]
         }
@@ -176,7 +176,10 @@ fn parse_rss<'a>(
             .map(|x| x.text());
 
         let content = match content {
-            Some(Some(c)) => Some(c.to_owned()),
+            Some(Some(c)) => {
+                let cleaned = web_scraper::clean_html(c, None);
+                Some(cleaned.to_string())
+            }
             _ => {
                 // attempt to get content by using content tag
                 let content = nodes
@@ -226,6 +229,7 @@ fn parse_rss<'a>(
             content,
             enclosure,
             pid: publisher.pid.unwrap(),
+            publisher_name: Some(publisher.name.to_string()),
         };
         vec.push(post);
     }
@@ -347,6 +351,7 @@ fn parse_atom<'a>(
             content,
             enclosure: None,
             pid: publisher.pid.unwrap(),
+            publisher_name: Some(publisher.name.to_string()),
         };
         vec.push(post);
     }

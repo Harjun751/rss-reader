@@ -78,8 +78,8 @@ async fn all_posts(
     Query(params): Query<HashMap<String, String>>,
     State(state): State<Appstate>,
 ) -> Result<Json<Vec<Post>>, (StatusCode, String)> {
-    let cid = params.get("cid").map(|x| x.parse::<u64>());
-    let cid = match cid {
+    let uid = params.get("uid").map(|x| x.parse::<u64>());
+    let uid = match uid {
         Some(Ok(val)) => val,
         _ => return Err((StatusCode::BAD_REQUEST, "Invalid id passed!".to_string())),
     };
@@ -94,7 +94,7 @@ async fn all_posts(
         }
     };
 
-    let res = state.dbconn.get_post_list(cid, offset).await;
+    let res = state.dbconn.get_post_list(uid, offset).await;
 
     match res {
         Ok(val) => Ok(Json(val)),
@@ -108,17 +108,20 @@ async fn all_posts(
         }
     }
 }
+use axum_extra::extract::cookie::{Cookie, CookieJar};
 
 #[debug_handler]
-async fn set_scrape_preference() -> impl IntoResponse {
-    let headers = AppendHeaders([(SET_COOKIE, "HEYHEY=YOUYHOU; SameSite=None; Secure")]);
-    let content = "teehee!";
-    (headers, content)
+async fn set_scrape_preference(jar: CookieJar) -> Result<CookieJar, StatusCode> {
+    Ok(jar.add(Cookie::new("HEYHEY", "piss.piss even.")))
 }
 
 #[debug_handler]
-async fn get_scrape_preference() -> String {
-    "hi".to_string()
+async fn get_scrape_preference(jar: CookieJar) -> String {
+    if let Some(session_id) = jar.get("HEYHEY") {
+        session_id.value().to_string()
+    } else {
+        "failed cuh".to_string()
+    }
 }
 
 #[derive(Deserialize)]
@@ -216,27 +219,53 @@ async fn get_subs(
     Query(params): Query<HashMap<String, String>>,
 ) -> Result<Json<Vec<Subscription>>, (StatusCode, String)> {
     let res = params.get("cid").map(|x| x.parse::<u64>());
-    let cid = match res {
-        Some(Ok(val)) => val,
-        _ => {
+    match res {
+        Some(Ok(cid)) => {
+            let urls = state.dbconn.get_subbed(cid).await;
+
+            match urls {
+                Ok(vecs) => Ok(Json(vecs)),
+                Err(e) => {
+                    // LOG THIS!
+                    error!("{}", e);
+                    Err((
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                        "We had some issues with the request...".to_string(),
+                    ))
+                }
+            }
+        }
+        Some(Err(e)) => {
             return Err((
                 StatusCode::BAD_REQUEST,
                 "Invalid ID value passed".to_string(),
             ))
         }
-    };
+        None => {
+            match params.get("uid").map(|x| x.parse::<u64>()) {
+                Some(Ok(uid)) => {
+                    let urls = state.dbconn.get_subbed_for_user(uid).await;
 
-    let urls = state.dbconn.get_subbed(cid).await;
-
-    match urls {
-        Ok(vecs) => Ok(Json(vecs)),
-        Err(e) => {
-            // LOG THIS!
-            error!("{}", e);
-            Err((
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "We had some issues with the request...".to_string(),
-            ))
+                    match urls {
+                        Ok(vecs) => Ok(Json(vecs)),
+                        Err(e) => {
+                            // LOG THIS!
+                            error!("{}", e);
+                            Err((
+                                StatusCode::INTERNAL_SERVER_ERROR,
+                                "We had some issues with the request...".to_string(),
+                            ))
+                        }
+                    }
+                }
+                Some(Err(e)) => {
+                    return Err((
+                        StatusCode::BAD_REQUEST,
+                        "Invalid ID value passed".to_string(),
+                    ))
+                }
+                None => return Err((StatusCode::BAD_REQUEST, "Invalid params!".to_string())),
+            }
         }
     }
 }
@@ -370,10 +399,7 @@ async fn delete_channel(
 }
 
 // TODO:
-// nicer formatting in the scraper
 // AUTHENTICATION?
-// images? maybe? idk.
-// IMPORTANT GET ALL POSTS: SELECT EVERTHING
 // script to refresh feeds
 
 // IMPLEMENT LOGGING: CT'D: MACRO TO COMPOSE, AND CTOR TAKING IN KWARGS

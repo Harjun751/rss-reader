@@ -16,7 +16,8 @@ const router = createRouter({
     {
       path: '/article/:url',
       name: 'article',
-      component: Article
+      component: Article,
+      props: route => ({query:route.query.pid})
     },
     {
       path: '/all',
@@ -32,7 +33,7 @@ const router = createRouter({
       path: '/settings/channel/:id',
       name: 'channel',
       component: ChannelSettings
-    },  
+    },
   ]
 })
 
