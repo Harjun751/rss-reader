@@ -2,6 +2,7 @@ use crate::logger::DetailedError;
 use crate::{rss_parser::validate_feed, Channel, Post, Subscription};
 use chrono::NaiveDateTime;
 use mysql::{params, prelude::Queryable, Pool};
+use std::env;
 
 pub struct DatabaseConnection {
     pool: Pool,
@@ -9,8 +10,11 @@ pub struct DatabaseConnection {
 
 impl DatabaseConnection {
     pub fn new() -> Self {
-        let url = "mysql://root:test@localhost:3306/rss";
-        let pool = Pool::new(url).unwrap();
+        let url = match env::var("IS_DOCKER_COMPOSED") {
+            Ok(_) => "mysql://root:test@db:3306/rss".to_string(),
+            Err(_) => "mysql://root:test@localhost:3306/rss".to_string(),
+        };
+        let pool = Pool::new(url.as_str()).unwrap();
         DatabaseConnection { pool }
     }
 

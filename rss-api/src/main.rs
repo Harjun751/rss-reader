@@ -15,6 +15,7 @@ use http::{
 };
 use serde::Deserialize;
 use std::collections::HashMap;
+use std::env;
 use tower::ServiceBuilder;
 use tower_http::{cors::CorsLayer, services::ServeFile, trace::TraceLayer};
 use tracing::{event, Level};
@@ -34,10 +35,15 @@ async fn main() {
         .init();
     let dbconn = DatabaseConnection::new();
 
+    let origin = match env::var("IS_DOCKER_COMPOSED") {
+        Ok(val) => val,
+        Err(_) => "http://localhost:5173".to_string(),
+    };
+
     let cors = CorsLayer::new()
         // allow requests from any origin
         .allow_methods([Method::GET, Method::POST, Method::DELETE, Method::OPTIONS])
-        .allow_origin("http://localhost:5173".parse::<HeaderValue>().unwrap())
+        .allow_origin(origin.parse::<HeaderValue>().unwrap())
         .allow_credentials(true)
         .allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE]);
 

@@ -22,7 +22,7 @@ import { get_channels, get_posts } from '../lib.js'
 import PostListItem from "../components/PostListItem.vue"
 import TodayLoader from '@/components/TodayLoader.vue';
 import PostLoader from '@/components/PostLoader.vue';
-
+console.log(import.meta.env.VITE_SERVER_URL)
 const channel_loading = ref(true)
 const posts_loading = ref(true)
 const posts = ref(null)

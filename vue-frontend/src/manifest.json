@@ -1,12 +1,12 @@
 {
-    "name": "My PWA",
+    "name": "NewsPaper",
     "icons": [
       {
-        "src": "/src/assets/cog.png",
+        "src": "/src/assets/512.png",
         "type": "image/png",
         "sizes": "512x512"
       }
     ],
-    "start_url": "http://localhost:5173/",
+    "start_url": "http://localhost/",
     "display": "standalone"
 }  

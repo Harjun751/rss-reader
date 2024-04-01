@@ -1,5 +1,8 @@
 import { useUserStore } from "./stores/state";
-const API_URL = "http://localhost:3000/";
+
+const API_URL = import.meta.env.VITE_IS_DOCKER_COMPOSED!=null?
+"http://localhost:3000/" :
+"http://localhost:3000/"
 
 export async function get_channels() {
     const store = useUserStore();
@@ -18,8 +21,6 @@ export async function get_posts(id) {
 
 
 export async function get_article(get_url, to_scrape) {
-    const delay = ms => new Promise(res => setTimeout(res, ms));
-    await delay(500);
     const url = API_URL + "read";
     const response = await fetch(url, {
         method: "POST",

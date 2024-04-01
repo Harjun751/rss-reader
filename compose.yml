@@ -1,0 +1,25 @@
+version: "3.8"
+services:
+  db:
+    image: mysql
+    command: --default-authentication-plugin=caching_sha2_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: test
+    volumes:
+      - type: bind
+        source: database/dbscript.sql
+        target: /docker-entrypoint-initdb.d/dbscript.sql
+  api:
+    build: rss-api/.
+    ports:
+      - 3000:3000
+    environment:
+      - IS_DOCKER_COMPOSED=${deploy_origin}
+    restart: always
+  frontend:
+    build: vue-frontend/.
+    ports:
+      - 80:80
+    environment:
+      - VITE_IS_DOCKER_COMPOSED="TRUE"
