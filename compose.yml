@@ -16,6 +16,7 @@ services:
       - 3000:${backend_port}
     environment:
       - IS_DOCKER_COMPOSED=${deploy_origin}
+      - RSS_API_DB=mysql://root:test@172.18.0.2:3306/rss
     restart: always
   frontend:
     build: vue-frontend/.
