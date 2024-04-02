@@ -10,5 +10,4 @@ if [ "$hash_start" != "$hash_end" ]; then
 fi
     echo "done!"
 
-# remember to change cd path for deployment context -> maybe .env?
 # remember to solve dubious ownership issue: git config --global --add safe.directory /home/arjun/Documents/rss-reader

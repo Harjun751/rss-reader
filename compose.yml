@@ -9,6 +9,9 @@ services:
       - type: bind
         source: database/dbscript.sql
         target: /docker-entrypoint-initdb.d/dbscript.sql
+      - type: volume
+        source: db-data
+        target: /var/lib/mysql
   api:
     build: rss-api/.
     ports:
@@ -25,3 +28,5 @@ services:
         - backend_url=${backend_url}
     ports:
       - ${frontend_port}:80
+volumes:
+  db-data:
