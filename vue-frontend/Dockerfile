@@ -1,6 +1,8 @@
 FROM node:lts-alpine as builder
 
 WORKDIR /usr/src/app
+ARG backend_url
+ENV VITE_IS_DOCKER_COMPOSED $backend_url
 COPY . .
 RUN npm install
 RUN npm run build

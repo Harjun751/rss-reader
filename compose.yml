@@ -18,8 +18,10 @@ services:
       - RSS_API_DB=mysql://root:test@172.18.0.2:3306/rss
     restart: always
   frontend:
-    build: vue-frontend/.
+    build:
+      context: vue-frontend/
+      dockerfile: Dockerfile
+      args:
+        - backend_url=${backend_url}
     ports:
       - ${frontend_port}:80
-    environment:
-      - VITE_IS_DOCKER_COMPOSED=${backend_url}
