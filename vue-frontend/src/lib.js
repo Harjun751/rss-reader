@@ -1,7 +1,7 @@
 import { useUserStore } from "./stores/state";
 
 const API_URL = import.meta.env.VITE_IS_DOCKER_COMPOSED!=null?
-"http://localhost:3000/" :
+import.meta.env.VITE_IS_DOCKER_COMPOSED :
 "http://localhost:3000/"
 
 export async function get_channels() {

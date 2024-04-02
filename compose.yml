@@ -22,4 +22,4 @@ services:
     ports:
       - 80:80
     environment:
-      - VITE_IS_DOCKER_COMPOSED="TRUE"
+      - VITE_IS_DOCKER_COMPOSED=${backend_url}
