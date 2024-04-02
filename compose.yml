@@ -13,13 +13,13 @@ services:
   api:
     build: rss-api/.
     ports:
-      - 3000:3000
+      - 3000:${backend_port}
     environment:
       - IS_DOCKER_COMPOSED=${deploy_origin}
     restart: always
   frontend:
     build: vue-frontend/.
     ports:
-      - 80:80
+      - 80:${frontend_port}
     environment:
       - VITE_IS_DOCKER_COMPOSED=${backend_url}
