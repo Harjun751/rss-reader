@@ -1,5 +1,5 @@
 #! /usr/bin/bash
-cd /home/arjun/Documents/rss-reader/
+cd $newspaper_absolute_path
 hash_start=`sudo -u arjun git rev-parse HEAD`
 sudo -u arjun git pull origin main
 hash_end=`sudo -u arjun git rev-parse HEAD`
