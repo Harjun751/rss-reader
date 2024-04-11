@@ -22,3 +22,4 @@ tracing = "0.1.40"
 http = "1.0.0"
 lazy_static = "1.4.0"
 axum-extra = { version = "0.9.3", features = ["cookie"] }
+axum-server = { version = "0.6.0", features = ["tls-rustls"] }

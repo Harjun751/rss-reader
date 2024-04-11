@@ -26,7 +26,9 @@ services:
       dockerfile: Dockerfile
       args:
         - backend_url=${backend_url}
+        - NGINX_SERVER_NAME=${NGINX_SERVER_NAME}
     ports:
       - ${frontend_port}:80
+      - 443:443
 volumes:
   db-data:

@@ -20,6 +20,8 @@ use tower::ServiceBuilder;
 use tower_http::{cors::CorsLayer, services::ServeFile, trace::TraceLayer};
 use tracing::{event, Level};
 use tracing_subscriber::{filter, layer::Layer, prelude::*};
+use axum_server::tls_rustls::RustlsConfig;
+use std::net::SocketAddr;
 
 #[derive(Clone)]
 struct Appstate {
@@ -61,8 +63,17 @@ async fn main() {
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()))
         .layer(cors);
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
-    axum::serve(listener, app).await.unwrap();
+    // let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
+    let config = RustlsConfig::from_pem_file(
+        "ssl/cert.pem",
+        "ssl/key.pem",
+    ).await.unwrap();
+    // axum::serve(listener, app).await.unwrap();
+    axum_server::bind_rustls(addr, config)
+    .serve(app.into_make_service())
+    .await
+    .unwrap();
 }
 
 #[debug_handler]

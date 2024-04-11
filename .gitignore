@@ -15,3 +15,7 @@ Cargo.lock
 *.pdb
 
 .env
+
+*.pem
+*.crt
+*.key
