@@ -2,7 +2,6 @@ FROM rust:1.67 as builder
 WORKDIR /usr/src/app
 COPY src src
 COPY Cargo.toml Cargo.toml
-COPY Cargo.lock Cargo.lock
 RUN cargo build --release
 
 FROM debian:bullseye-slim
