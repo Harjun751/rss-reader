@@ -1,2 +1,599 @@
-<root>
+<root><error>
+	<time>2024-04-14 13:11:48.215229900 +08:00</time>
+	<message>
+		response failed
+	</message>
+	<classification>
+		Status code: 500 Internal Server Error
+	</classification>
+	<latency>
+		195 ms
+	</latency>
+</error>
+<error>
+	<time>2024-04-14 13:11:48.206205600 +08:00</time>
+	<backtrace>
+		<![CDATA[   0: std::backtrace_rs::backtrace::dbghelp::trace
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962/library\std\src\..\..\backtrace\src\backtrace\dbghelp.rs:98
+   1: std::backtrace_rs::backtrace::trace_unsynchronized
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962/library\std\src\..\..\backtrace\src\backtrace\mod.rs:66
+   2: std::backtrace::Backtrace::create
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962/library\std\src\backtrace.rs:331
+   3: std::backtrace::Backtrace::force_capture
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962/library\std\src\backtrace.rs:313
+   4: rss_api::logger::DetailedError::new
+             at .\src\logger.rs:94
+   5: rss_api::logger::impl$7::from
+             at .\src\logger.rs:137
+   6: core::result::impl$27::from_residual<rss_api::Post,enum2$<mysql::error::Error>,rss_api::logger::DetailedError>
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\core\src\result.rs:1962
+   7: rss_api::database::impl$0::get_post::async_fn$0
+             at .\src\database.rs:160
+   8: rss_api::read::async_fn$0
+             at .\src\main.rs:151
+   9: axum::handler::impl$7::call::async_block$0<enum2$<rss_api::read::async_fn_env$0> (*)(axum::extract::state::State<rss_api::Appstate>,axum::json::Json<rss_api::ReadQuery>),enum2$<rss_api::read::async_fn_env$0>,rss_api::Appstate,enum2$<core::result::Result<a
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\axum-0.7.4\src\handler\mod.rs:241
+  10: core::future::future::impl$1::poll<alloc::boxed::Box<dyn$<core::future::future::Future<assoc$<Output,http::response::Response<axum_core::body::Body> > >,core::marker::Send>,alloc::alloc::Global> >
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\core\src\future\future.rs:125
+  11: futures_util::future::future::map::impl$2::poll<core::pin::Pin<alloc::boxed::Box<dyn$<core::future::future::Future<assoc$<Output,http::response::Response<axum_core::body::Body> > >,core::marker::Send>,alloc::alloc::Global> >,enum2$<core::result::Result<ht
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\future\future\map.rs:55
+  12: futures_util::future::future::impl$14::poll<core::pin::Pin<alloc::boxed::Box<dyn$<core::future::future::Future<assoc$<Output,http::response::Response<axum_core::body::Body> > >,core::marker::Send>,alloc::alloc::Global> >,enum2$<core::result::Result<http::
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\lib.rs:91
+  13: axum::handler::future::impl$4::poll<core::pin::Pin<alloc::boxed::Box<dyn$<core::future::future::Future<assoc$<Output,http::response::Response<axum_core::body::Body> > >,core::marker::Send>,alloc::alloc::Global> > >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\axum-0.7.4\src\macros.rs:42
+  14: futures_core::future::impl$2::try_poll<axum::handler::future::IntoServiceFuture<core::pin::Pin<alloc::boxed::Box<dyn$<core::future::future::Future<assoc$<Output,http::response::Response<axum_core::body::Body> > >,core::marker::Send>,alloc::alloc::Global> 
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-core-0.3.30\src\future.rs:82
+  15: futures_util::future::try_future::into_future::impl$2::poll<axum::handler::future::IntoServiceFuture<core::pin::Pin<alloc::boxed::Box<dyn$<core::future::future::Future<assoc$<Output,http::response::Response<axum_core::body::Body> > >,core::marker::Send>,a
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\future\try_future\into_future.rs:34
+  16: futures_util::future::future::map::impl$2::poll<futures_util::future::try_future::into_future::IntoFuture<axum::handler::future::IntoServiceFuture<core::pin::Pin<alloc::boxed::Box<dyn$<core::future::future::Future<assoc$<Output,http::response::Response<ax
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\future\future\map.rs:55
+  17: futures_util::future::future::impl$14::poll<futures_util::future::try_future::into_future::IntoFuture<axum::handler::future::IntoServiceFuture<core::pin::Pin<alloc::boxed::Box<dyn$<core::future::future::Future<assoc$<Output,http::response::Response<axum_c
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\lib.rs:91
+  18: futures_util::future::try_future::impl$49::poll<axum::handler::future::IntoServiceFuture<core::pin::Pin<alloc::boxed::Box<dyn$<core::future::future::Future<assoc$<Output,http::response::Response<axum_core::body::Body> > >,core::marker::Send>,alloc::alloc:
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\lib.rs:91
+  19: tower::util::map_response::impl$10::poll<axum::handler::future::IntoServiceFuture<core::pin::Pin<alloc::boxed::Box<dyn$<core::future::future::Future<assoc$<Output,http::response::Response<axum_core::body::Body> > >,core::marker::Send>,alloc::alloc::Global
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tower-0.4.13\src\macros.rs:38
+  20: core::future::future::impl$1::poll<alloc::boxed::Box<dyn$<core::future::future::Future<assoc$<Output,enum2$<core::result::Result<http::response::Response<axum_core::body::Body>,enum2$<core::convert::Infallible> > > > >,core::marker::Send>,alloc::alloc::Gl
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\core\src\future\future.rs:125
+  21: tower::util::oneshot::impl$3::poll<tower::util::boxed_clone::BoxCloneService<http::request::Request<axum_core::body::Body>,http::response::Response<axum_core::body::Body>,enum2$<core::convert::Infallible> >,http::request::Request<axum_core::body::Body> >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tower-0.4.13\src\util\oneshot.rs:97
+  22: axum::routing::route::impl$5::poll<enum2$<core::convert::Infallible> >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\axum-0.7.4\src\routing\route.rs:162
+  23: tower_http::trace::future::impl$0::poll<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> >,axum_core::body::Body,enum2$<core::convert::Infallible>,tower_http::classify::ServerErrorsAsFailures,tower_http::trace::on_response::DefaultOnRes
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tower-http-0.5.2\src\trace\future.rs:55
+  24: futures_core::future::impl$2::try_poll<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> >,tower_http::classify::ServerErrorsAsFailures,tower_http::trace::on_response::DefaultOnResponse,tower_htt
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-core-0.3.30\src\future.rs:82
+  25: futures_util::future::try_future::into_future::impl$2::poll<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> >,tower_http::classify::ServerErrorsAsFailures,tower_http::trace::on_response::Defaul
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\future\try_future\into_future.rs:34
+  26: futures_util::future::future::map::impl$2::poll<futures_util::future::try_future::into_future::IntoFuture<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> >,tower_http::classify::ServerErrorsAsF
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\future\future\map.rs:55
+  27: futures_util::future::future::impl$14::poll<futures_util::future::try_future::into_future::IntoFuture<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> >,tower_http::classify::ServerErrorsAsFailu
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\lib.rs:91
+  28: futures_util::future::try_future::impl$49::poll<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> >,tower_http::classify::ServerErrorsAsFailures,tower_http::trace::on_response::DefaultOnResponse,
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\lib.rs:91
+  29: tower::util::map_response::impl$10::poll<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> >,tower_http::classify::ServerErrorsAsFailures,tower_http::trace::on_response::DefaultOnResponse,tower_h
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tower-0.4.13\src\macros.rs:38
+  30: futures_core::future::impl$2::try_poll<tower::util::map_response::MapResponseFuture<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> >,tower_http::classify::ServerErrorsAsFailures,tower_http::tr
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-core-0.3.30\src\future.rs:82
+  31: futures_util::future::try_future::into_future::impl$2::poll<tower::util::map_response::MapResponseFuture<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> >,tower_http::classify::ServerErrorsAsFa
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\future\try_future\into_future.rs:34
+  32: futures_util::future::future::map::impl$2::poll<futures_util::future::try_future::into_future::IntoFuture<tower::util::map_response::MapResponseFuture<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infall
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\future\future\map.rs:55
+  33: futures_util::future::future::impl$14::poll<futures_util::future::try_future::into_future::IntoFuture<tower::util::map_response::MapResponseFuture<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\lib.rs:91
+  34: futures_util::future::try_future::impl$54::poll<tower::util::map_response::MapResponseFuture<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> >,tower_http::classify::ServerErrorsAsFailures,tower
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\lib.rs:91
+  35: tower::util::map_err::impl$10::poll<tower::util::map_response::MapResponseFuture<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> >,tower_http::classify::ServerErrorsAsFailures,tower_http::trace
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tower-0.4.13\src\macros.rs:38
+  36: futures_core::future::impl$2::try_poll<tower::util::map_err::MapErrFuture<tower::util::map_response::MapResponseFuture<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> >,tower_http::classify::Se
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-core-0.3.30\src\future.rs:82
+  37: futures_util::future::try_future::into_future::impl$2::poll<tower::util::map_err::MapErrFuture<tower::util::map_response::MapResponseFuture<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> >,tow
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\future\try_future\into_future.rs:34
+  38: futures_util::future::future::map::impl$2::poll<futures_util::future::try_future::into_future::IntoFuture<tower::util::map_err::MapErrFuture<tower::util::map_response::MapResponseFuture<tower_http::trace::future::ResponseFuture<axum::routing::route::Route
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\future\future\map.rs:55
+  39: futures_util::future::future::impl$14::poll<futures_util::future::try_future::into_future::IntoFuture<tower::util::map_err::MapErrFuture<tower::util::map_response::MapResponseFuture<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFutu
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\lib.rs:91
+  40: futures_util::future::try_future::impl$49::poll<tower::util::map_err::MapErrFuture<tower::util::map_response::MapResponseFuture<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> >,tower_http::cla
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\lib.rs:91
+  41: tower::util::map_response::impl$10::poll<tower::util::map_err::MapErrFuture<tower::util::map_response::MapResponseFuture<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> >,tower_http::classify::
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tower-0.4.13\src\macros.rs:38
+  42: core::future::future::impl$1::poll<alloc::boxed::Box<dyn$<core::future::future::Future<assoc$<Output,enum2$<core::result::Result<http::response::Response<axum_core::body::Body>,enum2$<core::convert::Infallible> > > > >,core::marker::Send>,alloc::alloc::Gl
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\core\src\future\future.rs:125
+  43: tower::util::oneshot::impl$3::poll<tower::util::boxed_clone::BoxCloneService<http::request::Request<axum_core::body::Body>,http::response::Response<axum_core::body::Body>,enum2$<core::convert::Infallible> >,http::request::Request<axum_core::body::Body> >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tower-0.4.13\src\util\oneshot.rs:97
+  44: axum::routing::route::impl$5::poll<enum2$<core::convert::Infallible> >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\axum-0.7.4\src\routing\route.rs:162
+  45: tower_http::cors::impl$5::poll<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> >,axum_core::body::Body,enum2$<core::convert::Infallible> >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tower-http-0.5.2\src\cors\mod.rs:686
+  46: futures_core::future::impl$2::try_poll<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> > >,http::response::Response<axum_core::body::Body>,enum2$<core::convert::Infallible> >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-core-0.3.30\src\future.rs:82
+  47: futures_util::future::try_future::into_future::impl$2::poll<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> > > >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\future\try_future\into_future.rs:34
+  48: futures_util::future::future::map::impl$2::poll<futures_util::future::try_future::into_future::IntoFuture<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> > > >,futures_util::fns::MapOkFn<http::response:
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\future\future\map.rs:55
+  49: futures_util::future::future::impl$14::poll<futures_util::future::try_future::into_future::IntoFuture<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> > > >,futures_util::fns::MapOkFn<http::response::Res
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\lib.rs:91
+  50: futures_util::future::try_future::impl$49::poll<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> > >,http::response::Response<axum_core::body::Body> (*)(http::response::Response<axum_core::body::Body>)>
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\lib.rs:91
+  51: tower::util::map_response::impl$10::poll<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> > >,http::response::Response<axum_core::body::Body> (*)(http::response::Response<axum_core::body::Body>)>
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tower-0.4.13\src\macros.rs:38
+  52: futures_core::future::impl$2::try_poll<tower::util::map_response::MapResponseFuture<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> > >,http::response::Response<axum_core::body::Body> (*)(http::response
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-core-0.3.30\src\future.rs:82
+  53: futures_util::future::try_future::into_future::impl$2::poll<tower::util::map_response::MapResponseFuture<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> > >,http::response::Response<axum_core::body::Bod
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\future\try_future\into_future.rs:34
+  54: futures_util::future::future::map::impl$2::poll<futures_util::future::try_future::into_future::IntoFuture<tower::util::map_response::MapResponseFuture<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> > >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\future\future\map.rs:55
+  55: futures_util::future::future::impl$14::poll<futures_util::future::try_future::into_future::IntoFuture<tower::util::map_response::MapResponseFuture<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> > >,htt
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\lib.rs:91
+  56: futures_util::future::try_future::impl$54::poll<tower::util::map_response::MapResponseFuture<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> > >,http::response::Response<axum_core::body::Body> (*)(http:
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\lib.rs:91
+  57: tower::util::map_err::impl$10::poll<tower::util::map_response::MapResponseFuture<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> > >,http::response::Response<axum_core::body::Body> (*)(http::response::R
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tower-0.4.13\src\macros.rs:38
+  58: futures_core::future::impl$2::try_poll<tower::util::map_err::MapErrFuture<tower::util::map_response::MapResponseFuture<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> > >,http::response::Response<axum_c
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-core-0.3.30\src\future.rs:82
+  59: futures_util::future::try_future::into_future::impl$2::poll<tower::util::map_err::MapErrFuture<tower::util::map_response::MapResponseFuture<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> > >,http::resp
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\future\try_future\into_future.rs:34
+  60: futures_util::future::future::map::impl$2::poll<futures_util::future::try_future::into_future::IntoFuture<tower::util::map_err::MapErrFuture<tower::util::map_response::MapResponseFuture<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<en
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\future\future\map.rs:55
+  61: futures_util::future::future::impl$14::poll<futures_util::future::try_future::into_future::IntoFuture<tower::util::map_err::MapErrFuture<tower::util::map_response::MapResponseFuture<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\lib.rs:91
+  62: futures_util::future::try_future::impl$49::poll<tower::util::map_err::MapErrFuture<tower::util::map_response::MapResponseFuture<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> > >,http::response::Respon
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\lib.rs:91
+  63: tower::util::map_response::impl$10::poll<tower::util::map_err::MapErrFuture<tower::util::map_response::MapResponseFuture<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> > >,http::response::Response<axum
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tower-0.4.13\src\macros.rs:38
+  64: core::future::future::impl$1::poll<alloc::boxed::Box<dyn$<core::future::future::Future<assoc$<Output,enum2$<core::result::Result<http::response::Response<axum_core::body::Body>,enum2$<core::convert::Infallible> > > > >,core::marker::Send>,alloc::alloc::Gl
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\core\src\future\future.rs:125
+  65: tower::util::oneshot::impl$3::poll<tower::util::boxed_clone::BoxCloneService<http::request::Request<axum_core::body::Body>,http::response::Response<axum_core::body::Body>,enum2$<core::convert::Infallible> >,http::request::Request<axum_core::body::Body> >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tower-0.4.13\src\util\oneshot.rs:97
+  66: axum::routing::route::impl$5::poll<enum2$<core::convert::Infallible> >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\axum-0.7.4\src\routing\route.rs:162
+  67: tower::util::oneshot::impl$3::poll<axum::routing::Router<tuple$<> >,http::request::Request<axum_core::body::Body> >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tower-0.4.13\src\util\oneshot.rs:97
+  68: axum::serve::impl$6::poll<axum::routing::Router<tuple$<> >,http::request::Request<axum_core::body::Body> >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\axum-0.7.4\src\serve.rs:480
+  69: hyper::proto::h1::dispatch::impl$6::poll_msg<axum::serve::TowerToHyperService<axum::routing::Router<tuple$<> > >,axum_core::body::Body>
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\hyper-1.1.0\src\proto\h1\dispatch.rs:513
+  70: hyper::proto::h1::dispatch::Dispatcher<hyper::proto::h1::dispatch::Server<axum::serve::TowerToHyperService<axum::routing::Router<tuple$<> > >,hyper::body::incoming::Incoming>,axum_core::body::Body,hyper_util::common::rewind::Rewind<hyper_util::rt::tokio::
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\hyper-1.1.0\src\proto\h1\dispatch.rs:311
+  71: hyper::proto::h1::dispatch::Dispatcher<hyper::proto::h1::dispatch::Server<axum::serve::TowerToHyperService<axum::routing::Router<tuple$<> > >,hyper::body::incoming::Incoming>,axum_core::body::Body,hyper_util::common::rewind::Rewind<hyper_util::rt::tokio::
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\hyper-1.1.0\src\proto\h1\dispatch.rs:170
+  72: hyper::proto::h1::dispatch::Dispatcher<hyper::proto::h1::dispatch::Server<axum::serve::TowerToHyperService<axum::routing::Router<tuple$<> > >,hyper::body::incoming::Incoming>,axum_core::body::Body,hyper_util::common::rewind::Rewind<hyper_util::rt::tokio::
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\hyper-1.1.0\src\proto\h1\dispatch.rs:146
+  73: hyper::proto::h1::dispatch::Dispatcher<hyper::proto::h1::dispatch::Server<axum::serve::TowerToHyperService<axum::routing::Router<tuple$<> > >,hyper::body::incoming::Incoming>,axum_core::body::Body,hyper_util::common::rewind::Rewind<hyper_util::rt::tokio::
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\hyper-1.1.0\src\proto\h1\dispatch.rs:125
+  74: hyper::proto::h1::dispatch::impl$1::poll<hyper::proto::h1::dispatch::Server<axum::serve::TowerToHyperService<axum::routing::Router<tuple$<> > >,hyper::body::incoming::Incoming>,axum_core::body::Body,hyper_util::common::rewind::Rewind<hyper_util::rt::tokio
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\hyper-1.1.0\src\proto\h1\dispatch.rs:446
+  75: hyper::server::conn::http1::impl$5::poll<hyper_util::common::rewind::Rewind<hyper_util::rt::tokio::TokioIo<tokio::net::tcp::stream::TcpStream> >,axum_core::body::Body,axum::serve::TowerToHyperService<axum::routing::Router<tuple$<> > > >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\hyper-1.1.0\src\server\conn\http1.rs:475
+  76: hyper_util::server::conn::auto::impl$7::poll<hyper_util::rt::tokio::TokioIo<tokio::net::tcp::stream::TcpStream>,axum::serve::TowerToHyperService<axum::routing::Router<tuple$<> > >,hyper_util::rt::tokio::TokioExecutor,axum_core::body::Body>
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\hyper-util-0.1.3\src\server\conn\auto.rs:475
+  77: axum::serve::impl$2::into_future::async_block$0::async_block$3<axum::routing::Router<tuple$<> >,axum::routing::Router<tuple$<> > >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\axum-0.7.4\src\serve.rs:219
+  78: tokio::runtime::task::core::impl$6::poll::closure$0<enum2$<axum::serve::impl$2::into_future::async_block$0::async_block_env$3<axum::routing::Router<tuple$<> >,axum::routing::Router<tuple$<> > > >,alloc::sync::Arc<tokio::runtime::scheduler::multi_thread::h
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\core.rs:328
+  79: tokio::loom::std::unsafe_cell::UnsafeCell<enum2$<tokio::runtime::task::core::Stage<enum2$<axum::serve::impl$2::into_future::async_block$0::async_block_env$3<axum::routing::Router<tuple$<> >,axum::routing::Router<tuple$<> > > > > > >::with_mut
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\loom\std\unsafe_cell.rs:16
+  80: tokio::runtime::task::core::Core<enum2$<axum::serve::impl$2::into_future::async_block$0::async_block_env$3<axum::routing::Router<tuple$<> >,axum::routing::Router<tuple$<> > > >,alloc::sync::Arc<tokio::runtime::scheduler::multi_thread::handle::Handle,alloc
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\core.rs:317
+  81: tokio::runtime::task::harness::poll_future::closure$0<enum2$<axum::serve::impl$2::into_future::async_block$0::async_block_env$3<axum::routing::Router<tuple$<> >,axum::routing::Router<tuple$<> > > >,alloc::sync::Arc<tokio::runtime::scheduler::multi_thread:
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\harness.rs:485
+  82: core::panic::unwind_safe::impl$23::call_once<enum2$<core::task::poll::Poll<tuple$<> > >,tokio::runtime::task::harness::poll_future::closure_env$0<enum2$<axum::serve::impl$2::into_future::async_block$0::async_block_env$3<axum::routing::Router<tuple$<> >,ax
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\core\src\panic\unwind_safe.rs:271
+  83: std::panicking::try::do_call<core::panic::unwind_safe::AssertUnwindSafe<tokio::runtime::task::harness::poll_future::closure_env$0<enum2$<axum::serve::impl$2::into_future::async_block$0::async_block_env$3<axum::routing::Router<tuple$<> >,axum::routing::Rou
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\std\src\panicking.rs:504
+  84: std::panicking::try::do_catch<core::panic::unwind_safe::AssertUnwindSafe<tokio::runtime::task::harness::cancel_task::closure_env$0<hyper::proto::h2::server::H2Stream<axum::serve::TowerToHyperServiceFuture<axum::routing::Router<tuple$<> >,http::request::Re
+  85: std::panicking::try<enum2$<core::task::poll::Poll<tuple$<> > >,core::panic::unwind_safe::AssertUnwindSafe<tokio::runtime::task::harness::poll_future::closure_env$0<enum2$<axum::serve::impl$2::into_future::async_block$0::async_block_env$3<axum::routing::Ro
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\std\src\panicking.rs:468
+  86: std::panic::catch_unwind<core::panic::unwind_safe::AssertUnwindSafe<tokio::runtime::task::harness::poll_future::closure_env$0<enum2$<axum::serve::impl$2::into_future::async_block$0::async_block_env$3<axum::routing::Router<tuple$<> >,axum::routing::Router<
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\std\src\panic.rs:142
+  87: tokio::runtime::task::harness::poll_future<enum2$<axum::serve::impl$2::into_future::async_block$0::async_block_env$3<axum::routing::Router<tuple$<> >,axum::routing::Router<tuple$<> > > >,alloc::sync::Arc<tokio::runtime::scheduler::multi_thread::handle::Ha
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\harness.rs:473
+  88: tokio::runtime::task::harness::Harness<enum2$<axum::serve::impl$2::into_future::async_block$0::async_block_env$3<axum::routing::Router<tuple$<> >,axum::routing::Router<tuple$<> > > >,alloc::sync::Arc<tokio::runtime::scheduler::multi_thread::handle::Handle
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\harness.rs:208
+  89: tokio::runtime::task::harness::Harness<enum2$<axum::serve::impl$2::into_future::async_block$0::async_block_env$3<axum::routing::Router<tuple$<> >,axum::routing::Router<tuple$<> > > >,alloc::sync::Arc<tokio::runtime::scheduler::multi_thread::handle::Handle
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\harness.rs:153
+  90: tokio::runtime::task::raw::poll<enum2$<axum::serve::impl$2::into_future::async_block$0::async_block_env$3<axum::routing::Router<tuple$<> >,axum::routing::Router<tuple$<> > > >,alloc::sync::Arc<tokio::runtime::scheduler::multi_thread::handle::Handle,alloc:
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\raw.rs:271
+  91: tokio::runtime::task::raw::RawTask::poll
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\raw.rs:201
+  92: tokio::runtime::task::LocalNotified<alloc::sync::Arc<tokio::runtime::scheduler::multi_thread::handle::Handle,alloc::alloc::Global> >::run<alloc::sync::Arc<tokio::runtime::scheduler::multi_thread::handle::Handle,alloc::alloc::Global> >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\mod.rs:416
+  93: tokio::runtime::scheduler::multi_thread::worker::impl$1::run_task::closure$0
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\scheduler\multi_thread\worker.rs:576
+  94: tokio::runtime::coop::with_budget
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\coop.rs:107
+  95: tokio::runtime::coop::budget
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\coop.rs:73
+  96: tokio::runtime::scheduler::multi_thread::worker::Context::run_task
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\scheduler\multi_thread\worker.rs:575
+  97: tokio::runtime::scheduler::multi_thread::worker::Context::run
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\scheduler\multi_thread\worker.rs:526
+  98: tokio::runtime::scheduler::multi_thread::worker::run::closure$0::closure$0
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\scheduler\multi_thread\worker.rs:491
+  99: tokio::runtime::context::scoped::Scoped<enum2$<tokio::runtime::scheduler::Context> >::set<enum2$<tokio::runtime::scheduler::Context>,tokio::runtime::scheduler::multi_thread::worker::run::closure$0::closure_env$0,tuple$<> >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\context\scoped.rs:40
+ 100: tokio::runtime::context::set_scheduler::closure$0<tuple$<>,tokio::runtime::scheduler::multi_thread::worker::run::closure$0::closure_env$0>
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\context.rs:176
+ 101: std::thread::local::LocalKey<tokio::runtime::context::Context>::try_with<tokio::runtime::context::Context,tokio::runtime::context::set_scheduler::closure_env$0<tuple$<>,tokio::runtime::scheduler::multi_thread::worker::run::closure$0::closure_env$0>,tuple$
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\std\src\thread\local.rs:270
+ 102: std::thread::local::LocalKey<tokio::runtime::context::Context>::with<tokio::runtime::context::Context,tokio::runtime::context::set_scheduler::closure_env$0<tuple$<>,tokio::runtime::scheduler::multi_thread::worker::run::closure$0::closure_env$0>,tuple$<> >
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\std\src\thread\local.rs:246
+ 103: tokio::runtime::context::set_scheduler<tuple$<>,tokio::runtime::scheduler::multi_thread::worker::run::closure$0::closure_env$0>
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\context.rs:176
+ 104: tokio::runtime::scheduler::multi_thread::worker::run::closure$0
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\scheduler\multi_thread\worker.rs:486
+ 105: tokio::runtime::context::runtime::enter_runtime<tokio::runtime::scheduler::multi_thread::worker::run::closure_env$0,tuple$<> >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\context\runtime.rs:65
+ 106: tokio::runtime::scheduler::multi_thread::worker::run
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\scheduler\multi_thread\worker.rs:478
+ 107: tokio::runtime::scheduler::multi_thread::worker::impl$0::launch::closure$0
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\scheduler\multi_thread\worker.rs:447
+ 108: tokio::runtime::blocking::task::impl$2::poll<tokio::runtime::scheduler::multi_thread::worker::impl$0::launch::closure_env$0,tuple$<> >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\blocking\task.rs:42
+ 109: tokio::runtime::task::core::impl$6::poll::closure$0<tokio::runtime::blocking::task::BlockingTask<tokio::runtime::scheduler::multi_thread::worker::impl$0::launch::closure_env$0>,tokio::runtime::blocking::schedule::BlockingSchedule>
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\core.rs:328
+ 110: tokio::loom::std::unsafe_cell::UnsafeCell<enum2$<tokio::runtime::task::core::Stage<tokio::runtime::blocking::task::BlockingTask<tokio::runtime::scheduler::multi_thread::worker::impl$0::launch::closure_env$0> > > >::with_mut
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\loom\std\unsafe_cell.rs:16
+ 111: tokio::runtime::task::core::Core<tokio::runtime::blocking::task::BlockingTask<tokio::runtime::scheduler::multi_thread::worker::impl$0::launch::closure_env$0>,tokio::runtime::blocking::schedule::BlockingSchedule>::poll<tokio::runtime::blocking::task::Block
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\core.rs:317
+ 112: tokio::runtime::task::harness::poll_future::closure$0<tokio::runtime::blocking::task::BlockingTask<tokio::runtime::scheduler::multi_thread::worker::impl$0::launch::closure_env$0>,tokio::runtime::blocking::schedule::BlockingSchedule>
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\harness.rs:485
+ 113: core::panic::unwind_safe::impl$23::call_once<enum2$<core::task::poll::Poll<tuple$<> > >,tokio::runtime::task::harness::poll_future::closure_env$0<tokio::runtime::blocking::task::BlockingTask<tokio::runtime::scheduler::multi_thread::worker::impl$0::launch:
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\core\src\panic\unwind_safe.rs:271
+ 114: std::panicking::try::do_call<core::panic::unwind_safe::AssertUnwindSafe<tokio::runtime::task::harness::poll_future::closure_env$0<tokio::runtime::blocking::task::BlockingTask<tokio::runtime::scheduler::multi_thread::worker::impl$0::launch::closure_env$0>,
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\std\src\panicking.rs:504
+ 115: std::panicking::panicking
+ 116: std::panicking::try<enum2$<core::task::poll::Poll<tuple$<> > >,core::panic::unwind_safe::AssertUnwindSafe<tokio::runtime::task::harness::poll_future::closure_env$0<tokio::runtime::blocking::task::BlockingTask<tokio::runtime::scheduler::multi_thread::worke
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\std\src\panicking.rs:468
+ 117: std::panic::catch_unwind<core::panic::unwind_safe::AssertUnwindSafe<tokio::runtime::task::harness::poll_future::closure_env$0<tokio::runtime::blocking::task::BlockingTask<tokio::runtime::scheduler::multi_thread::worker::impl$0::launch::closure_env$0>,toki
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\std\src\panic.rs:142
+ 118: tokio::runtime::task::harness::poll_future<tokio::runtime::blocking::task::BlockingTask<tokio::runtime::scheduler::multi_thread::worker::impl$0::launch::closure_env$0>,tokio::runtime::blocking::schedule::BlockingSchedule>
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\harness.rs:473
+ 119: tokio::runtime::task::harness::Harness<tokio::runtime::blocking::task::BlockingTask<tokio::runtime::scheduler::multi_thread::worker::impl$0::launch::closure_env$0>,tokio::runtime::blocking::schedule::BlockingSchedule>::poll_inner<tokio::runtime::blocking:
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\harness.rs:208
+ 120: tokio::runtime::task::harness::Harness<tokio::runtime::blocking::task::BlockingTask<tokio::runtime::scheduler::multi_thread::worker::impl$0::launch::closure_env$0>,tokio::runtime::blocking::schedule::BlockingSchedule>::poll<tokio::runtime::blocking::task:
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\harness.rs:153
+ 121: tokio::runtime::task::raw::poll<tokio::runtime::blocking::task::BlockingTask<tokio::runtime::scheduler::multi_thread::worker::impl$0::launch::closure_env$0>,tokio::runtime::blocking::schedule::BlockingSchedule>
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\raw.rs:271
+ 122: tokio::runtime::task::raw::RawTask::poll
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\raw.rs:201
+ 123: tokio::runtime::task::UnownedTask<tokio::runtime::blocking::schedule::BlockingSchedule>::run<tokio::runtime::blocking::schedule::BlockingSchedule>
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\mod.rs:453
+ 124: tokio::runtime::blocking::pool::Task::run
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\blocking\pool.rs:159
+ 125: tokio::runtime::blocking::pool::Inner::run
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\blocking\pool.rs:513
+ 126: tokio::runtime::blocking::pool::impl$6::spawn_thread::closure$0
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\blocking\pool.rs:471
+ 127: std::sys_common::backtrace::__rust_begin_short_backtrace<tokio::runtime::blocking::pool::impl$6::spawn_thread::closure_env$0,tuple$<> >
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\std\src\sys_common\backtrace.rs:154
+ 128: std::sys_common::backtrace::__rust_begin_short_backtrace<tokio::runtime::blocking::pool::impl$6::spawn_thread::closure_env$0,tuple$<> >
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\std\src\sys_common\backtrace.rs:154
+ 129: std::thread::impl$0::spawn_unchecked_::closure$1::closure$0<tokio::runtime::blocking::pool::impl$6::spawn_thread::closure_env$0,tuple$<> >
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\std\src\thread\mod.rs:529
+ 130: core::panic::unwind_safe::impl$23::call_once<tuple$<>,std::thread::impl$0::spawn_unchecked_::closure$1::closure_env$0<tokio::runtime::blocking::pool::impl$6::spawn_thread::closure_env$0,tuple$<> > >
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\core\src\panic\unwind_safe.rs:271
+ 131: std::panicking::try::do_call<core::panic::unwind_safe::AssertUnwindSafe<std::thread::impl$0::spawn_unchecked_::closure$1::closure_env$0<tokio::runtime::blocking::pool::impl$6::spawn_thread::closure_env$0,tuple$<> > >,tuple$<> >
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\std\src\panicking.rs:504
+ 132: std::panicking::panicking
+ 133: std::panicking::try<tuple$<>,core::panic::unwind_safe::AssertUnwindSafe<std::thread::impl$0::spawn_unchecked_::closure$1::closure_env$0<tokio::runtime::blocking::pool::impl$6::spawn_thread::closure_env$0,tuple$<> > > >
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\std\src\panicking.rs:468
+ 134: std::panic::catch_unwind
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\std\src\panic.rs:142
+ 135: std::thread::impl$0::spawn_unchecked_::closure$1<tokio::runtime::blocking::pool::impl$6::spawn_thread::closure_env$0,tuple$<> >
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\std\src\thread\mod.rs:528
+ 136: core::ops::function::FnOnce::call_once<std::thread::impl$0::spawn_unchecked_::closure_env$1<tokio::runtime::blocking::pool::impl$6::spawn_thread::closure_env$0,tuple$<> >,tuple$<> >
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\core\src\ops\function.rs:250
+ 137: std::sys::windows::thread::impl$0::new::thread_start
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962/library\std\src\sys\windows\thread.rs:57
+ 138: BaseThreadInitThunk
+ 139: RtlUserThreadStart
+]]>
+	</backtrace>
+	<description>
+		"MySqlError { ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'INNER JOIN publisher ON post.pid=publisher.pid' at line 1 }"
+	</description>
+	<url>
+		"https://www.wired.com/story/iran-israel-drone-attack-iron-dome/"
+	</url>
+	<id>
+		None
+	</id>
+</error>
+<error>
+	<time>2024-04-14 12:51:37.145553400 +08:00</time>
+	<message>
+		response failed
+	</message>
+	<classification>
+		Status code: 500 Internal Server Error
+	</classification>
+	<latency>
+		155 ms
+	</latency>
+</error>
+<error>
+	<time>2024-04-14 12:51:37.137632200 +08:00</time>
+	<backtrace>
+		<![CDATA[   0: std::backtrace_rs::backtrace::dbghelp::trace
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962/library\std\src\..\..\backtrace\src\backtrace\dbghelp.rs:98
+   1: std::backtrace_rs::backtrace::trace_unsynchronized
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962/library\std\src\..\..\backtrace\src\backtrace\mod.rs:66
+   2: std::backtrace::Backtrace::create
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962/library\std\src\backtrace.rs:331
+   3: std::backtrace::Backtrace::force_capture
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962/library\std\src\backtrace.rs:313
+   4: rss_api::logger::DetailedError::new_descriptive
+             at .\src\logger.rs:103
+   5: rss_api::database::impl$0::subscribe::async_fn$0
+             at .\src\database.rs:36
+   6: rss_api::sub::async_fn$0
+             at .\src\main.rs:200
+   7: axum::handler::impl$7::call::async_block$0<enum2$<rss_api::sub::async_fn_env$0> (*)(axum::extract::state::State<rss_api::Appstate>,axum::json::Json<rss_api::Subscription>),enum2$<rss_api::sub::async_fn_env$0>,rss_api::Appstate,enum2$<core::result::Result<
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\axum-0.7.4\src\handler\mod.rs:241
+   8: core::future::future::impl$1::poll<alloc::boxed::Box<dyn$<core::future::future::Future<assoc$<Output,http::response::Response<axum_core::body::Body> > >,core::marker::Send>,alloc::alloc::Global> >
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\core\src\future\future.rs:125
+   9: futures_util::future::future::map::impl$2::poll<core::pin::Pin<alloc::boxed::Box<dyn$<core::future::future::Future<assoc$<Output,http::response::Response<axum_core::body::Body> > >,core::marker::Send>,alloc::alloc::Global> >,enum2$<core::result::Result<ht
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\future\future\map.rs:55
+  10: futures_util::future::future::impl$14::poll<core::pin::Pin<alloc::boxed::Box<dyn$<core::future::future::Future<assoc$<Output,http::response::Response<axum_core::body::Body> > >,core::marker::Send>,alloc::alloc::Global> >,enum2$<core::result::Result<http::
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\lib.rs:91
+  11: axum::handler::future::impl$4::poll<core::pin::Pin<alloc::boxed::Box<dyn$<core::future::future::Future<assoc$<Output,http::response::Response<axum_core::body::Body> > >,core::marker::Send>,alloc::alloc::Global> > >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\axum-0.7.4\src\macros.rs:42
+  12: futures_core::future::impl$2::try_poll<axum::handler::future::IntoServiceFuture<core::pin::Pin<alloc::boxed::Box<dyn$<core::future::future::Future<assoc$<Output,http::response::Response<axum_core::body::Body> > >,core::marker::Send>,alloc::alloc::Global> 
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-core-0.3.30\src\future.rs:82
+  13: futures_util::future::try_future::into_future::impl$2::poll<axum::handler::future::IntoServiceFuture<core::pin::Pin<alloc::boxed::Box<dyn$<core::future::future::Future<assoc$<Output,http::response::Response<axum_core::body::Body> > >,core::marker::Send>,a
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\future\try_future\into_future.rs:34
+  14: futures_util::future::future::map::impl$2::poll<futures_util::future::try_future::into_future::IntoFuture<axum::handler::future::IntoServiceFuture<core::pin::Pin<alloc::boxed::Box<dyn$<core::future::future::Future<assoc$<Output,http::response::Response<ax
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\future\future\map.rs:55
+  15: futures_util::future::future::impl$14::poll<futures_util::future::try_future::into_future::IntoFuture<axum::handler::future::IntoServiceFuture<core::pin::Pin<alloc::boxed::Box<dyn$<core::future::future::Future<assoc$<Output,http::response::Response<axum_c
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\lib.rs:91
+  16: futures_util::future::try_future::impl$49::poll<axum::handler::future::IntoServiceFuture<core::pin::Pin<alloc::boxed::Box<dyn$<core::future::future::Future<assoc$<Output,http::response::Response<axum_core::body::Body> > >,core::marker::Send>,alloc::alloc:
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\lib.rs:91
+  17: tower::util::map_response::impl$10::poll<axum::handler::future::IntoServiceFuture<core::pin::Pin<alloc::boxed::Box<dyn$<core::future::future::Future<assoc$<Output,http::response::Response<axum_core::body::Body> > >,core::marker::Send>,alloc::alloc::Global
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tower-0.4.13\src\macros.rs:38
+  18: core::future::future::impl$1::poll<alloc::boxed::Box<dyn$<core::future::future::Future<assoc$<Output,enum2$<core::result::Result<http::response::Response<axum_core::body::Body>,enum2$<core::convert::Infallible> > > > >,core::marker::Send>,alloc::alloc::Gl
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\core\src\future\future.rs:125
+  19: tower::util::oneshot::impl$3::poll<tower::util::boxed_clone::BoxCloneService<http::request::Request<axum_core::body::Body>,http::response::Response<axum_core::body::Body>,enum2$<core::convert::Infallible> >,http::request::Request<axum_core::body::Body> >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tower-0.4.13\src\util\oneshot.rs:97
+  20: axum::routing::route::impl$5::poll<enum2$<core::convert::Infallible> >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\axum-0.7.4\src\routing\route.rs:162
+  21: tower_http::trace::future::impl$0::poll<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> >,axum_core::body::Body,enum2$<core::convert::Infallible>,tower_http::classify::ServerErrorsAsFailures,tower_http::trace::on_response::DefaultOnRes
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tower-http-0.5.2\src\trace\future.rs:55
+  22: futures_core::future::impl$2::try_poll<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> >,tower_http::classify::ServerErrorsAsFailures,tower_http::trace::on_response::DefaultOnResponse,tower_htt
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-core-0.3.30\src\future.rs:82
+  23: futures_util::future::try_future::into_future::impl$2::poll<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> >,tower_http::classify::ServerErrorsAsFailures,tower_http::trace::on_response::Defaul
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\future\try_future\into_future.rs:34
+  24: futures_util::future::future::map::impl$2::poll<futures_util::future::try_future::into_future::IntoFuture<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> >,tower_http::classify::ServerErrorsAsF
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\future\future\map.rs:55
+  25: futures_util::future::future::impl$14::poll<futures_util::future::try_future::into_future::IntoFuture<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> >,tower_http::classify::ServerErrorsAsFailu
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\lib.rs:91
+  26: futures_util::future::try_future::impl$49::poll<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> >,tower_http::classify::ServerErrorsAsFailures,tower_http::trace::on_response::DefaultOnResponse,
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\lib.rs:91
+  27: tower::util::map_response::impl$10::poll<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> >,tower_http::classify::ServerErrorsAsFailures,tower_http::trace::on_response::DefaultOnResponse,tower_h
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tower-0.4.13\src\macros.rs:38
+  28: futures_core::future::impl$2::try_poll<tower::util::map_response::MapResponseFuture<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> >,tower_http::classify::ServerErrorsAsFailures,tower_http::tr
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-core-0.3.30\src\future.rs:82
+  29: futures_util::future::try_future::into_future::impl$2::poll<tower::util::map_response::MapResponseFuture<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> >,tower_http::classify::ServerErrorsAsFa
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\future\try_future\into_future.rs:34
+  30: futures_util::future::future::map::impl$2::poll<futures_util::future::try_future::into_future::IntoFuture<tower::util::map_response::MapResponseFuture<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infall
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\future\future\map.rs:55
+  31: futures_util::future::future::impl$14::poll<futures_util::future::try_future::into_future::IntoFuture<tower::util::map_response::MapResponseFuture<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\lib.rs:91
+  32: futures_util::future::try_future::impl$54::poll<tower::util::map_response::MapResponseFuture<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> >,tower_http::classify::ServerErrorsAsFailures,tower
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\lib.rs:91
+  33: tower::util::map_err::impl$10::poll<tower::util::map_response::MapResponseFuture<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> >,tower_http::classify::ServerErrorsAsFailures,tower_http::trace
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tower-0.4.13\src\macros.rs:38
+  34: futures_core::future::impl$2::try_poll<tower::util::map_err::MapErrFuture<tower::util::map_response::MapResponseFuture<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> >,tower_http::classify::Se
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-core-0.3.30\src\future.rs:82
+  35: futures_util::future::try_future::into_future::impl$2::poll<tower::util::map_err::MapErrFuture<tower::util::map_response::MapResponseFuture<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> >,tow
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\future\try_future\into_future.rs:34
+  36: futures_util::future::future::map::impl$2::poll<futures_util::future::try_future::into_future::IntoFuture<tower::util::map_err::MapErrFuture<tower::util::map_response::MapResponseFuture<tower_http::trace::future::ResponseFuture<axum::routing::route::Route
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\future\future\map.rs:55
+  37: futures_util::future::future::impl$14::poll<futures_util::future::try_future::into_future::IntoFuture<tower::util::map_err::MapErrFuture<tower::util::map_response::MapResponseFuture<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFutu
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\lib.rs:91
+  38: futures_util::future::try_future::impl$49::poll<tower::util::map_err::MapErrFuture<tower::util::map_response::MapResponseFuture<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> >,tower_http::cla
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\lib.rs:91
+  39: tower::util::map_response::impl$10::poll<tower::util::map_err::MapErrFuture<tower::util::map_response::MapResponseFuture<tower_http::trace::future::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> >,tower_http::classify::
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tower-0.4.13\src\macros.rs:38
+  40: core::future::future::impl$1::poll<alloc::boxed::Box<dyn$<core::future::future::Future<assoc$<Output,enum2$<core::result::Result<http::response::Response<axum_core::body::Body>,enum2$<core::convert::Infallible> > > > >,core::marker::Send>,alloc::alloc::Gl
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\core\src\future\future.rs:125
+  41: tower::util::oneshot::impl$3::poll<tower::util::boxed_clone::BoxCloneService<http::request::Request<axum_core::body::Body>,http::response::Response<axum_core::body::Body>,enum2$<core::convert::Infallible> >,http::request::Request<axum_core::body::Body> >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tower-0.4.13\src\util\oneshot.rs:97
+  42: axum::routing::route::impl$5::poll<enum2$<core::convert::Infallible> >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\axum-0.7.4\src\routing\route.rs:162
+  43: tower_http::cors::impl$5::poll<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> >,axum_core::body::Body,enum2$<core::convert::Infallible> >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tower-http-0.5.2\src\cors\mod.rs:686
+  44: futures_core::future::impl$2::try_poll<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> > >,http::response::Response<axum_core::body::Body>,enum2$<core::convert::Infallible> >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-core-0.3.30\src\future.rs:82
+  45: futures_util::future::try_future::into_future::impl$2::poll<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> > > >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\future\try_future\into_future.rs:34
+  46: futures_util::future::future::map::impl$2::poll<futures_util::future::try_future::into_future::IntoFuture<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> > > >,futures_util::fns::MapOkFn<http::response:
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\future\future\map.rs:55
+  47: futures_util::future::future::impl$14::poll<futures_util::future::try_future::into_future::IntoFuture<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> > > >,futures_util::fns::MapOkFn<http::response::Res
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\lib.rs:91
+  48: futures_util::future::try_future::impl$49::poll<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> > >,http::response::Response<axum_core::body::Body> (*)(http::response::Response<axum_core::body::Body>)>
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\lib.rs:91
+  49: tower::util::map_response::impl$10::poll<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> > >,http::response::Response<axum_core::body::Body> (*)(http::response::Response<axum_core::body::Body>)>
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tower-0.4.13\src\macros.rs:38
+  50: futures_core::future::impl$2::try_poll<tower::util::map_response::MapResponseFuture<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> > >,http::response::Response<axum_core::body::Body> (*)(http::response
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-core-0.3.30\src\future.rs:82
+  51: futures_util::future::try_future::into_future::impl$2::poll<tower::util::map_response::MapResponseFuture<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> > >,http::response::Response<axum_core::body::Bod
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\future\try_future\into_future.rs:34
+  52: futures_util::future::future::map::impl$2::poll<futures_util::future::try_future::into_future::IntoFuture<tower::util::map_response::MapResponseFuture<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> > >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\future\future\map.rs:55
+  53: futures_util::future::future::impl$14::poll<futures_util::future::try_future::into_future::IntoFuture<tower::util::map_response::MapResponseFuture<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> > >,htt
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\lib.rs:91
+  54: futures_util::future::try_future::impl$54::poll<tower::util::map_response::MapResponseFuture<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> > >,http::response::Response<axum_core::body::Body> (*)(http:
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\lib.rs:91
+  55: tower::util::map_err::impl$10::poll<tower::util::map_response::MapResponseFuture<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> > >,http::response::Response<axum_core::body::Body> (*)(http::response::R
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tower-0.4.13\src\macros.rs:38
+  56: futures_core::future::impl$2::try_poll<tower::util::map_err::MapErrFuture<tower::util::map_response::MapResponseFuture<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> > >,http::response::Response<axum_c
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-core-0.3.30\src\future.rs:82
+  57: futures_util::future::try_future::into_future::impl$2::poll<tower::util::map_err::MapErrFuture<tower::util::map_response::MapResponseFuture<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> > >,http::resp
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\future\try_future\into_future.rs:34
+  58: futures_util::future::future::map::impl$2::poll<futures_util::future::try_future::into_future::IntoFuture<tower::util::map_err::MapErrFuture<tower::util::map_response::MapResponseFuture<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<en
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\future\future\map.rs:55
+  59: futures_util::future::future::impl$14::poll<futures_util::future::try_future::into_future::IntoFuture<tower::util::map_err::MapErrFuture<tower::util::map_response::MapResponseFuture<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\lib.rs:91
+  60: futures_util::future::try_future::impl$49::poll<tower::util::map_err::MapErrFuture<tower::util::map_response::MapResponseFuture<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> > >,http::response::Respon
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\futures-util-0.3.30\src\lib.rs:91
+  61: tower::util::map_response::impl$10::poll<tower::util::map_err::MapErrFuture<tower::util::map_response::MapResponseFuture<tower_http::cors::ResponseFuture<axum::routing::route::RouteFuture<enum2$<core::convert::Infallible> > >,http::response::Response<axum
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tower-0.4.13\src\macros.rs:38
+  62: core::future::future::impl$1::poll<alloc::boxed::Box<dyn$<core::future::future::Future<assoc$<Output,enum2$<core::result::Result<http::response::Response<axum_core::body::Body>,enum2$<core::convert::Infallible> > > > >,core::marker::Send>,alloc::alloc::Gl
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\core\src\future\future.rs:125
+  63: tower::util::oneshot::impl$3::poll<tower::util::boxed_clone::BoxCloneService<http::request::Request<axum_core::body::Body>,http::response::Response<axum_core::body::Body>,enum2$<core::convert::Infallible> >,http::request::Request<axum_core::body::Body> >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tower-0.4.13\src\util\oneshot.rs:97
+  64: axum::routing::route::impl$5::poll<enum2$<core::convert::Infallible> >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\axum-0.7.4\src\routing\route.rs:162
+  65: tower::util::oneshot::impl$3::poll<axum::routing::Router<tuple$<> >,http::request::Request<axum_core::body::Body> >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tower-0.4.13\src\util\oneshot.rs:97
+  66: axum::serve::impl$6::poll<axum::routing::Router<tuple$<> >,http::request::Request<axum_core::body::Body> >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\axum-0.7.4\src\serve.rs:480
+  67: hyper::proto::h1::dispatch::impl$6::poll_msg<axum::serve::TowerToHyperService<axum::routing::Router<tuple$<> > >,axum_core::body::Body>
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\hyper-1.1.0\src\proto\h1\dispatch.rs:513
+  68: hyper::proto::h1::dispatch::Dispatcher<hyper::proto::h1::dispatch::Server<axum::serve::TowerToHyperService<axum::routing::Router<tuple$<> > >,hyper::body::incoming::Incoming>,axum_core::body::Body,hyper_util::common::rewind::Rewind<hyper_util::rt::tokio::
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\hyper-1.1.0\src\proto\h1\dispatch.rs:311
+  69: hyper::proto::h1::dispatch::Dispatcher<hyper::proto::h1::dispatch::Server<axum::serve::TowerToHyperService<axum::routing::Router<tuple$<> > >,hyper::body::incoming::Incoming>,axum_core::body::Body,hyper_util::common::rewind::Rewind<hyper_util::rt::tokio::
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\hyper-1.1.0\src\proto\h1\dispatch.rs:170
+  70: hyper::proto::h1::dispatch::Dispatcher<hyper::proto::h1::dispatch::Server<axum::serve::TowerToHyperService<axum::routing::Router<tuple$<> > >,hyper::body::incoming::Incoming>,axum_core::body::Body,hyper_util::common::rewind::Rewind<hyper_util::rt::tokio::
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\hyper-1.1.0\src\proto\h1\dispatch.rs:146
+  71: hyper::proto::h1::dispatch::Dispatcher<hyper::proto::h1::dispatch::Server<axum::serve::TowerToHyperService<axum::routing::Router<tuple$<> > >,hyper::body::incoming::Incoming>,axum_core::body::Body,hyper_util::common::rewind::Rewind<hyper_util::rt::tokio::
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\hyper-1.1.0\src\proto\h1\dispatch.rs:125
+  72: hyper::proto::h1::dispatch::impl$1::poll<hyper::proto::h1::dispatch::Server<axum::serve::TowerToHyperService<axum::routing::Router<tuple$<> > >,hyper::body::incoming::Incoming>,axum_core::body::Body,hyper_util::common::rewind::Rewind<hyper_util::rt::tokio
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\hyper-1.1.0\src\proto\h1\dispatch.rs:446
+  73: hyper::server::conn::http1::impl$5::poll<hyper_util::common::rewind::Rewind<hyper_util::rt::tokio::TokioIo<tokio::net::tcp::stream::TcpStream> >,axum_core::body::Body,axum::serve::TowerToHyperService<axum::routing::Router<tuple$<> > > >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\hyper-1.1.0\src\server\conn\http1.rs:475
+  74: hyper_util::server::conn::auto::impl$7::poll<hyper_util::rt::tokio::TokioIo<tokio::net::tcp::stream::TcpStream>,axum::serve::TowerToHyperService<axum::routing::Router<tuple$<> > >,hyper_util::rt::tokio::TokioExecutor,axum_core::body::Body>
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\hyper-util-0.1.3\src\server\conn\auto.rs:475
+  75: axum::serve::impl$2::into_future::async_block$0::async_block$3<axum::routing::Router<tuple$<> >,axum::routing::Router<tuple$<> > >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\axum-0.7.4\src\serve.rs:219
+  76: tokio::runtime::task::core::impl$6::poll::closure$0<enum2$<axum::serve::impl$2::into_future::async_block$0::async_block_env$3<axum::routing::Router<tuple$<> >,axum::routing::Router<tuple$<> > > >,alloc::sync::Arc<tokio::runtime::scheduler::multi_thread::h
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\core.rs:328
+  77: tokio::loom::std::unsafe_cell::UnsafeCell<enum2$<tokio::runtime::task::core::Stage<enum2$<axum::serve::impl$2::into_future::async_block$0::async_block_env$3<axum::routing::Router<tuple$<> >,axum::routing::Router<tuple$<> > > > > > >::with_mut
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\loom\std\unsafe_cell.rs:16
+  78: tokio::runtime::task::core::Core<enum2$<axum::serve::impl$2::into_future::async_block$0::async_block_env$3<axum::routing::Router<tuple$<> >,axum::routing::Router<tuple$<> > > >,alloc::sync::Arc<tokio::runtime::scheduler::multi_thread::handle::Handle,alloc
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\core.rs:317
+  79: tokio::runtime::task::harness::poll_future::closure$0<enum2$<axum::serve::impl$2::into_future::async_block$0::async_block_env$3<axum::routing::Router<tuple$<> >,axum::routing::Router<tuple$<> > > >,alloc::sync::Arc<tokio::runtime::scheduler::multi_thread:
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\harness.rs:485
+  80: core::panic::unwind_safe::impl$23::call_once<enum2$<core::task::poll::Poll<tuple$<> > >,tokio::runtime::task::harness::poll_future::closure_env$0<enum2$<axum::serve::impl$2::into_future::async_block$0::async_block_env$3<axum::routing::Router<tuple$<> >,ax
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\core\src\panic\unwind_safe.rs:271
+  81: std::panicking::try::do_call<core::panic::unwind_safe::AssertUnwindSafe<tokio::runtime::task::harness::poll_future::closure_env$0<enum2$<axum::serve::impl$2::into_future::async_block$0::async_block_env$3<axum::routing::Router<tuple$<> >,axum::routing::Rou
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\std\src\panicking.rs:504
+  82: std::panicking::try::do_catch<core::panic::unwind_safe::AssertUnwindSafe<tokio::runtime::task::harness::cancel_task::closure_env$0<hyper::proto::h2::server::H2Stream<axum::serve::TowerToHyperServiceFuture<axum::routing::Router<tuple$<> >,http::request::Re
+  83: std::panicking::try<enum2$<core::task::poll::Poll<tuple$<> > >,core::panic::unwind_safe::AssertUnwindSafe<tokio::runtime::task::harness::poll_future::closure_env$0<enum2$<axum::serve::impl$2::into_future::async_block$0::async_block_env$3<axum::routing::Ro
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\std\src\panicking.rs:468
+  84: std::panic::catch_unwind<core::panic::unwind_safe::AssertUnwindSafe<tokio::runtime::task::harness::poll_future::closure_env$0<enum2$<axum::serve::impl$2::into_future::async_block$0::async_block_env$3<axum::routing::Router<tuple$<> >,axum::routing::Router<
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\std\src\panic.rs:142
+  85: tokio::runtime::task::harness::poll_future<enum2$<axum::serve::impl$2::into_future::async_block$0::async_block_env$3<axum::routing::Router<tuple$<> >,axum::routing::Router<tuple$<> > > >,alloc::sync::Arc<tokio::runtime::scheduler::multi_thread::handle::Ha
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\harness.rs:473
+  86: tokio::runtime::task::harness::Harness<enum2$<axum::serve::impl$2::into_future::async_block$0::async_block_env$3<axum::routing::Router<tuple$<> >,axum::routing::Router<tuple$<> > > >,alloc::sync::Arc<tokio::runtime::scheduler::multi_thread::handle::Handle
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\harness.rs:208
+  87: tokio::runtime::task::harness::Harness<enum2$<axum::serve::impl$2::into_future::async_block$0::async_block_env$3<axum::routing::Router<tuple$<> >,axum::routing::Router<tuple$<> > > >,alloc::sync::Arc<tokio::runtime::scheduler::multi_thread::handle::Handle
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\harness.rs:153
+  88: tokio::runtime::task::raw::poll<enum2$<axum::serve::impl$2::into_future::async_block$0::async_block_env$3<axum::routing::Router<tuple$<> >,axum::routing::Router<tuple$<> > > >,alloc::sync::Arc<tokio::runtime::scheduler::multi_thread::handle::Handle,alloc:
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\raw.rs:271
+  89: tokio::runtime::task::raw::RawTask::poll
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\raw.rs:201
+  90: tokio::runtime::task::LocalNotified<alloc::sync::Arc<tokio::runtime::scheduler::multi_thread::handle::Handle,alloc::alloc::Global> >::run<alloc::sync::Arc<tokio::runtime::scheduler::multi_thread::handle::Handle,alloc::alloc::Global> >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\mod.rs:416
+  91: tokio::runtime::scheduler::multi_thread::worker::impl$1::run_task::closure$0
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\scheduler\multi_thread\worker.rs:576
+  92: tokio::runtime::coop::with_budget
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\coop.rs:107
+  93: tokio::runtime::coop::budget
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\coop.rs:73
+  94: tokio::runtime::scheduler::multi_thread::worker::Context::run_task
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\scheduler\multi_thread\worker.rs:575
+  95: tokio::runtime::scheduler::multi_thread::worker::Context::run
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\scheduler\multi_thread\worker.rs:526
+  96: tokio::runtime::scheduler::multi_thread::worker::run::closure$0::closure$0
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\scheduler\multi_thread\worker.rs:491
+  97: tokio::runtime::context::scoped::Scoped<enum2$<tokio::runtime::scheduler::Context> >::set<enum2$<tokio::runtime::scheduler::Context>,tokio::runtime::scheduler::multi_thread::worker::run::closure$0::closure_env$0,tuple$<> >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\context\scoped.rs:40
+  98: tokio::runtime::context::set_scheduler::closure$0<tuple$<>,tokio::runtime::scheduler::multi_thread::worker::run::closure$0::closure_env$0>
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\context.rs:176
+  99: std::thread::local::LocalKey<tokio::runtime::context::Context>::try_with<tokio::runtime::context::Context,tokio::runtime::context::set_scheduler::closure_env$0<tuple$<>,tokio::runtime::scheduler::multi_thread::worker::run::closure$0::closure_env$0>,tuple$
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\std\src\thread\local.rs:270
+ 100: std::thread::local::LocalKey<tokio::runtime::context::Context>::with<tokio::runtime::context::Context,tokio::runtime::context::set_scheduler::closure_env$0<tuple$<>,tokio::runtime::scheduler::multi_thread::worker::run::closure$0::closure_env$0>,tuple$<> >
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\std\src\thread\local.rs:246
+ 101: tokio::runtime::context::set_scheduler<tuple$<>,tokio::runtime::scheduler::multi_thread::worker::run::closure$0::closure_env$0>
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\context.rs:176
+ 102: tokio::runtime::scheduler::multi_thread::worker::run::closure$0
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\scheduler\multi_thread\worker.rs:486
+ 103: tokio::runtime::context::runtime::enter_runtime<tokio::runtime::scheduler::multi_thread::worker::run::closure_env$0,tuple$<> >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\context\runtime.rs:65
+ 104: tokio::runtime::scheduler::multi_thread::worker::run
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\scheduler\multi_thread\worker.rs:478
+ 105: tokio::runtime::scheduler::multi_thread::worker::impl$0::launch::closure$0
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\scheduler\multi_thread\worker.rs:447
+ 106: tokio::runtime::blocking::task::impl$2::poll<tokio::runtime::scheduler::multi_thread::worker::impl$0::launch::closure_env$0,tuple$<> >
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\blocking\task.rs:42
+ 107: tokio::runtime::task::core::impl$6::poll::closure$0<tokio::runtime::blocking::task::BlockingTask<tokio::runtime::scheduler::multi_thread::worker::impl$0::launch::closure_env$0>,tokio::runtime::blocking::schedule::BlockingSchedule>
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\core.rs:328
+ 108: tokio::loom::std::unsafe_cell::UnsafeCell<enum2$<tokio::runtime::task::core::Stage<tokio::runtime::blocking::task::BlockingTask<tokio::runtime::scheduler::multi_thread::worker::impl$0::launch::closure_env$0> > > >::with_mut
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\loom\std\unsafe_cell.rs:16
+ 109: tokio::runtime::task::core::Core<tokio::runtime::blocking::task::BlockingTask<tokio::runtime::scheduler::multi_thread::worker::impl$0::launch::closure_env$0>,tokio::runtime::blocking::schedule::BlockingSchedule>::poll<tokio::runtime::blocking::task::Block
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\core.rs:317
+ 110: tokio::runtime::task::harness::poll_future::closure$0<tokio::runtime::blocking::task::BlockingTask<tokio::runtime::scheduler::multi_thread::worker::impl$0::launch::closure_env$0>,tokio::runtime::blocking::schedule::BlockingSchedule>
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\harness.rs:485
+ 111: core::panic::unwind_safe::impl$23::call_once<enum2$<core::task::poll::Poll<tuple$<> > >,tokio::runtime::task::harness::poll_future::closure_env$0<tokio::runtime::blocking::task::BlockingTask<tokio::runtime::scheduler::multi_thread::worker::impl$0::launch:
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\core\src\panic\unwind_safe.rs:271
+ 112: std::panicking::try::do_call<core::panic::unwind_safe::AssertUnwindSafe<tokio::runtime::task::harness::poll_future::closure_env$0<tokio::runtime::blocking::task::BlockingTask<tokio::runtime::scheduler::multi_thread::worker::impl$0::launch::closure_env$0>,
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\std\src\panicking.rs:504
+ 113: std::panicking::panicking
+ 114: std::panicking::try<enum2$<core::task::poll::Poll<tuple$<> > >,core::panic::unwind_safe::AssertUnwindSafe<tokio::runtime::task::harness::poll_future::closure_env$0<tokio::runtime::blocking::task::BlockingTask<tokio::runtime::scheduler::multi_thread::worke
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\std\src\panicking.rs:468
+ 115: std::panic::catch_unwind<core::panic::unwind_safe::AssertUnwindSafe<tokio::runtime::task::harness::poll_future::closure_env$0<tokio::runtime::blocking::task::BlockingTask<tokio::runtime::scheduler::multi_thread::worker::impl$0::launch::closure_env$0>,toki
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\std\src\panic.rs:142
+ 116: tokio::runtime::task::harness::poll_future<tokio::runtime::blocking::task::BlockingTask<tokio::runtime::scheduler::multi_thread::worker::impl$0::launch::closure_env$0>,tokio::runtime::blocking::schedule::BlockingSchedule>
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\harness.rs:473
+ 117: tokio::runtime::task::harness::Harness<tokio::runtime::blocking::task::BlockingTask<tokio::runtime::scheduler::multi_thread::worker::impl$0::launch::closure_env$0>,tokio::runtime::blocking::schedule::BlockingSchedule>::poll_inner<tokio::runtime::blocking:
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\harness.rs:208
+ 118: tokio::runtime::task::harness::Harness<tokio::runtime::blocking::task::BlockingTask<tokio::runtime::scheduler::multi_thread::worker::impl$0::launch::closure_env$0>,tokio::runtime::blocking::schedule::BlockingSchedule>::poll<tokio::runtime::blocking::task:
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\harness.rs:153
+ 119: tokio::runtime::task::raw::poll<tokio::runtime::blocking::task::BlockingTask<tokio::runtime::scheduler::multi_thread::worker::impl$0::launch::closure_env$0>,tokio::runtime::blocking::schedule::BlockingSchedule>
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\raw.rs:271
+ 120: tokio::runtime::task::raw::RawTask::poll
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\raw.rs:201
+ 121: tokio::runtime::task::UnownedTask<tokio::runtime::blocking::schedule::BlockingSchedule>::run<tokio::runtime::blocking::schedule::BlockingSchedule>
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\task\mod.rs:453
+ 122: tokio::runtime::blocking::pool::Task::run
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\blocking\pool.rs:159
+ 123: tokio::runtime::blocking::pool::Inner::run
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\blocking\pool.rs:513
+ 124: tokio::runtime::blocking::pool::impl$6::spawn_thread::closure$0
+             at C:\Users\Arjun\.cargo\registry\src\index.crates.io-6f17d22bba15001f\tokio-1.36.0\src\runtime\blocking\pool.rs:471
+ 125: std::sys_common::backtrace::__rust_begin_short_backtrace<tokio::runtime::blocking::pool::impl$6::spawn_thread::closure_env$0,tuple$<> >
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\std\src\sys_common\backtrace.rs:154
+ 126: std::sys_common::backtrace::__rust_begin_short_backtrace<tokio::runtime::blocking::pool::impl$6::spawn_thread::closure_env$0,tuple$<> >
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\std\src\sys_common\backtrace.rs:154
+ 127: std::thread::impl$0::spawn_unchecked_::closure$1::closure$0<tokio::runtime::blocking::pool::impl$6::spawn_thread::closure_env$0,tuple$<> >
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\std\src\thread\mod.rs:529
+ 128: core::panic::unwind_safe::impl$23::call_once<tuple$<>,std::thread::impl$0::spawn_unchecked_::closure$1::closure_env$0<tokio::runtime::blocking::pool::impl$6::spawn_thread::closure_env$0,tuple$<> > >
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\core\src\panic\unwind_safe.rs:271
+ 129: std::panicking::try::do_call<core::panic::unwind_safe::AssertUnwindSafe<std::thread::impl$0::spawn_unchecked_::closure$1::closure_env$0<tokio::runtime::blocking::pool::impl$6::spawn_thread::closure_env$0,tuple$<> > >,tuple$<> >
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\std\src\panicking.rs:504
+ 130: std::panicking::panicking
+ 131: std::panicking::try<tuple$<>,core::panic::unwind_safe::AssertUnwindSafe<std::thread::impl$0::spawn_unchecked_::closure$1::closure_env$0<tokio::runtime::blocking::pool::impl$6::spawn_thread::closure_env$0,tuple$<> > > >
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\std\src\panicking.rs:468
+ 132: std::panic::catch_unwind
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\std\src\panic.rs:142
+ 133: std::thread::impl$0::spawn_unchecked_::closure$1<tokio::runtime::blocking::pool::impl$6::spawn_thread::closure_env$0,tuple$<> >
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\std\src\thread\mod.rs:528
+ 134: core::ops::function::FnOnce::call_once<std::thread::impl$0::spawn_unchecked_::closure_env$1<tokio::runtime::blocking::pool::impl$6::spawn_thread::closure_env$0,tuple$<> >,tuple$<> >
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962\library\core\src\ops\function.rs:250
+ 135: std::sys::windows::thread::impl$0::new::thread_start
+             at /rustc/79e9716c980570bfd1f666e3b16ac583f0168962/library\std\src\sys\windows\thread.rs:57
+ 136: BaseThreadInitThunk
+ 137: RtlUserThreadStart
+]]>
+	</backtrace>
+	<description>
+		"builder error: relative URL without a base"
+	</description>
+	<url>
+		"test"
+	</url>
+</error>
+
 </root>

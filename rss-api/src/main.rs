@@ -9,6 +9,7 @@ use axum::{
     routing::{get, post},
     Router,
 };
+use axum_server::tls_rustls::RustlsConfig;
 use http::{
     header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},
     HeaderValue, Method,
@@ -16,12 +17,11 @@ use http::{
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::env;
+use std::net::SocketAddr;
 use tower::ServiceBuilder;
 use tower_http::{cors::CorsLayer, services::ServeFile, trace::TraceLayer};
 use tracing::{event, Level};
 use tracing_subscriber::{filter, layer::Layer, prelude::*};
-use axum_server::tls_rustls::RustlsConfig;
-use std::net::SocketAddr;
 
 #[derive(Clone)]
 struct Appstate {
@@ -41,11 +41,12 @@ async fn main() {
         Ok(val) => val,
         Err(_) => "http://localhost:5173".to_string(),
     };
+    let origin = origin.parse::<HeaderValue>().unwrap();
 
     let cors = CorsLayer::new()
         // allow requests from any origin
         .allow_methods([Method::GET, Method::POST, Method::DELETE, Method::OPTIONS])
-        .allow_origin(origin.parse::<HeaderValue>().unwrap())
+        .allow_origin(origin)
         .allow_credentials(true)
         .allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE]);
 
@@ -63,17 +64,24 @@ async fn main() {
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()))
         .layer(cors);
 
-    // let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
-    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
-    let config = RustlsConfig::from_pem_file(
-        "ssl/cert.pem",
-        "ssl/key.pem",
-    ).await.unwrap();
-    // axum::serve(listener, app).await.unwrap();
-    axum_server::bind_rustls(addr, config)
-    .serve(app.into_make_service())
-    .await
-    .unwrap();
+    match env::var("IS_DOCKER_COMPOSED") {
+        Ok(_) => {
+            // docker environment: run on https
+            let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
+            let config = RustlsConfig::from_pem_file("ssl/cert.pem", "ssl/key.pem")
+                .await
+                .unwrap();
+            axum_server::bind_rustls(addr, config)
+                .serve(app.into_make_service())
+                .await
+                .unwrap();
+        }
+        Err(_) => {
+            // dev environment: run on http
+            let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+            axum::serve(listener, app).await.unwrap();
+        }
+    };
 }
 
 #[debug_handler]

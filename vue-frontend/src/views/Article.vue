@@ -8,11 +8,13 @@ const loading = ref(true)
 const article = ref(null)
 const error = ref(null)
 const route = useRoute();
+const small_text = ref(null)
 
 async function getArticle(get_url, to_scrape){
     try{
         article.value = await get_article(get_url,to_scrape);
-
+        const date_object = new Date(Date.parse(article.value.date));
+        small_text.value = construct_info(date_object);
     } catch(err){
         error.value = err.toString()
     } finally {
@@ -34,6 +36,15 @@ get_scrape_preference(Number(route.query.pid)).then((val) => {
     })
 })
 
+function construct_info(date){
+    let day = date.toLocaleDateString("en-SG", { weekday: 'short' });
+    let month = date.toLocaleDateString("en-SG", { month: 'short' });
+    let date_num = date.getDate();
+    let year = date.getFullYear();
+    let time = date.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
+
+    return `${article.value.publisher_name} • ${day}, ${month} ${date_num} ${year} • ${time}`;
+}
 </script>
 
 <template>
@@ -43,7 +54,7 @@ get_scrape_preference(Number(route.query.pid)).then((val) => {
         <div v-if="article">
             <main v-if="article">
                 <h2>{{ article.title }}</h2>
-                <small>{{ article.date }}</small>
+                <small>{{ small_text }}</small>
                 <p v-html="article.content || article.description"></p>
             </main>
             <div class="center">
@@ -116,6 +127,7 @@ a{
 <style>
 img{
     max-width:680px;
+    width:100%;
     max-height:70vh;
     display:block;
     margin:auto;

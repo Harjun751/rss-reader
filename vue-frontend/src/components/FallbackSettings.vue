@@ -40,7 +40,7 @@ const full = computed(() => {
             <table>
                 <tr v-for="sub in full">
                     <td>
-                        {{ sub.name }} | {{ sub.url }}
+                        <span>{{ sub.name }} | {{ sub.url }}</span>
                         <label class="switch">
                             <input v-model="sub.to_scrape" v-on:change="set_scrape_preference(sub.pid, sub.to_scrape)" type="checkbox">
                             <span class="slider"></span>
@@ -61,15 +61,20 @@ div{
 }
 td{
     padding-right:0;
+    display:flex;
+}
+td > span{
+    margin-right:20px;
+}
+td label{
+    margin-left:auto;
 }
 tr{
     cursor:default;
 }
 
 .switch {
-    float:right;
     position: relative;
-    display: inline-block;
     width: 60px;
     height: 34px;
 }

@@ -45,7 +45,7 @@ a{
 }
 
 .table-wrapper{
-  overflow-x: scroll;
+  overflow-x: auto;
   white-space: nowrap;
 }
 table{

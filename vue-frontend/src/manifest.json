@@ -8,6 +8,5 @@
       }
     ],
     "start_url": "https://home.news.com/",
-    // make sure start_url correct
     "display": "standalone"
 }  

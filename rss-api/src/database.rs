@@ -151,13 +151,13 @@ impl DatabaseConnection {
 
         let (query, params) = match id {
             Some(i) => {
-                let q = conn.prep("SELECT * from post where id=:id")?;
+                let q = conn.prep("SELECT post.id, post.url, post.title, post.content, post.date_added, post.description, post.image, post.pid, publisher.name from post INNER JOIN publisher ON post.pid=publisher.pid where post.id=:id")?;
                 let p = params! { "id" => i };
                 (q, p)
             }
             None => match url {
                 Some(u) => {
-                    let q = conn.prep("SELECT * from post where url=:url")?;
+                    let q = conn.prep("SELECT post.id, post.url, post.title, post.content, post.date_added, post.description, post.image, post.pid, publisher.name from post INNER JOIN publisher ON post.pid=publisher.pid where post.url=:url")?;
                     let p = params! {"url" => u};
                     (q, p)
                 }
@@ -172,7 +172,7 @@ impl DatabaseConnection {
         let post = conn.exec_map(
             query,
             params,
-            |(id, url, title, content, date_added, description, image, pid): (
+            |(id, url, title, content, date_added, description, image, pid, publisher_name): (
                 u64,
                 String,
                 String,
@@ -181,6 +181,7 @@ impl DatabaseConnection {
                 String,
                 Option<String>,
                 u64,
+                String,
             )| {
                 Post {
                     id: id,
@@ -191,7 +192,7 @@ impl DatabaseConnection {
                     description: description,
                     enclosure: image,
                     pid: pid,
-                    publisher_name: None,
+                    publisher_name: Some(publisher_name),
                 }
             },
         );
