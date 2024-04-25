@@ -7,6 +7,8 @@
         "sizes": "512x512"
       }
     ],
-    "start_url": "https://home.news.com/",
-    "display": "standalone"
+    "start_url": "https://home.news.com/all",
+    "display": "standalone",
+    "background_color": "#bfbfbf"
+    
 }  
