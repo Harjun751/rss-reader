@@ -212,7 +212,14 @@ fn parse_rss<'a>(
             .map(|x| x.text());
 
         let description = match description {
-            Some(Some(t)) => t.to_owned(),
+            Some(Some(t)) => {
+                let cleaned = web_scraper::clean_html(t, None);
+                let text = cleaned.raw;
+                match text.as_str() {
+                    "" => t.to_string(),
+                    _ => text,
+                }
+            }
             _ => {
                 // Create the description field from content if possible
                 match &content {

@@ -1,8 +1,9 @@
-use crate::rss_parser::from_url;
 use crate::Post;
+use crate::{logger::DetailedError, rss_parser::from_url};
 use lazy_static::lazy_static;
 use scraper::{ElementRef, Html, Selector};
 use std::error::Error;
+use std::sync::Mutex;
 
 pub struct CleanedHTML {
     html: String,
@@ -15,6 +16,8 @@ impl ToString for CleanedHTML {
     }
 }
 
+// TODO: remove
+#[derive(Debug)]
 struct Site {
     url: &'static str,
     root_element_selector: Selector,
@@ -39,6 +42,10 @@ lazy_static! {
             url: "www.wired.com/20",
             root_element_selector: Selector::parse("article.content").unwrap(),
         },
+        Site {
+            url: "arstechnica.com",
+            root_element_selector: Selector::parse(".article-guts").unwrap(),
+        }
     ];
 }
 
@@ -47,6 +54,11 @@ pub async fn scrape(post: &mut Post) -> Result<(), Box<dyn Error>> {
     let possible_site = SITES.iter().find(|x| post.link.contains(x.url));
 
     let new_body = match possible_site {
+        Some(site) if site.url == "arstechnica.com" => {
+            ars_technica(data, &site.root_element_selector)
+                .await
+                .to_string()
+        }
         Some(site) => clean_html(&data, Some(&site.root_element_selector)).to_string(),
         None => clean_html(&data, None).to_string(),
     };
@@ -80,7 +92,6 @@ pub fn clean_html(data: &str, selector: Option<&Selector>) -> CleanedHTML {
                         let text = "<p>".to_string() + &text + "</p>";
                         builder.push_str(&text);
                     }
-                    // this looks bad, maybe i'll change it in the future
                     "img" => {
                         if let Some(src) = ele.attr("src") {
                             let text = format!("<img src=\"{}\"/>", src);
@@ -94,6 +105,49 @@ pub fn clean_html(data: &str, selector: Option<&Selector>) -> CleanedHTML {
     }
 
     CleanedHTML { html: builder, raw }
+}
+
+async fn ars_technica(data: String, root_selector: &Selector) -> CleanedHTML {
+    let curr_data = Mutex::new(data);
+    let selector = Selector::parse("span.next").unwrap();
+    let mut aggregated = CleanedHTML {
+        raw: String::from(""),
+        html: String::from(""),
+    };
+    loop {
+        {
+            let lock = curr_data.lock().unwrap();
+            let cleaned = clean_html(&*lock, Some(root_selector));
+            aggregated.raw.push_str(&cleaned.raw);
+            aggregated.html.push_str(&cleaned.html);
+        }
+
+        // check if there is a next page
+        let next_link = {
+            let lock = curr_data.lock().unwrap();
+            let parsed = Html::parse_document(&*lock);
+            let link = parsed.select(&selector).next();
+            match link {
+                Some(next) => ElementRef::wrap(next.parent().unwrap())
+                    .unwrap()
+                    .attr("href")
+                    .unwrap()
+                    .to_owned(),
+                None => return aggregated,
+            }
+        };
+
+        let next_data = from_url(&next_link).await;
+        match next_data {
+            Ok(data) => {
+                let mut lock = curr_data.lock().unwrap();
+                *lock = data;
+            }
+            Err(e) => {
+                DetailedError::new_descriptive(Box::new(e), "Failed scraping ars link.");
+            }
+        }
+    }
 }
 
 #[cfg(test)]

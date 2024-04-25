@@ -5,6 +5,8 @@ import All from '@/views/All.vue'
 import Settings from '@/views/Settings.vue'
 import ChannelSettings from '@/views/ChannelSettings.vue'
 
+const savedPage = null;
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -34,7 +36,21 @@ const router = createRouter({
       name: 'channel',
       component: ChannelSettings
     },
-  ]
+  ],
+  scrollBehavior (to, from, savedPosition) {
+    if (to.name == "all"){
+      if (savedPage!=null){
+        this.history.replace(to, savedPage);
+        savedPage = null;
+        return;
+      } else { 
+        return { top: 0 }
+      }
+    } else if (from.name == "all") {
+      savedPage = savedPosition;
+    }
+    return { top: 0 }
+  }
 })
 
 export default router

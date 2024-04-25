@@ -1,5 +1,5 @@
 <template>
-    <RouterLink :to="{ name: 'article', params: { url: data.link }, query: { pid: data.pid }}">
+    <RouterLink visited-class="visited" :to="{ name: 'article', params: { url: data.link }, query: { pid: data.pid }}">
     <div>
         <h2>{{ data.title }}</h2>
         <p>{{  data.description }}</p>

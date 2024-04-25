@@ -107,3 +107,7 @@ border: solid 3px #d9d9d9;
       border-radius: 0px;
   }
 }
+
+.post-container a:visited {
+  color: var(--light-text-secondary);
+}
