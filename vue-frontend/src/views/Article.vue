@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue'
 import { get_article, get_scrape_preference } from "../lib.js"
 import { useRoute } from 'vue-router';
+import { set_scrape_preference } from '@/lib';
 import ArticleLoader from "@/components/ArticleLoader.vue"
 
 const loading = ref(true)
@@ -9,6 +10,7 @@ const article = ref(null)
 const error = ref(null)
 const route = useRoute();
 const small_text = ref(null)
+const show = ref(false)
 
 async function getArticle(get_url, to_scrape){
     try{
@@ -45,6 +47,12 @@ function construct_info(date){
 
     return `${article.value.publisher_name} • ${day}, ${month} ${date_num} ${year} • ${time}`;
 }
+
+function on_fallback(){
+    show.value = false;
+    console.log(route.query.pid)
+    set_scrape_preference(Number(route.query.pid), true);
+}
 </script>
 
 <template>
@@ -61,13 +69,19 @@ function construct_info(date){
                 <a :href="article.link">Article Link</a>
             </div>
         </div>
+        <div v-if="show" class="center">
+            <p>Keep fallback on for this publisher?</p>
+            <div class="apart">
+                <button @click="on_fallback">Keep it on.</button>
+            </div>
+        </div>
         <div v-if="scrape" class="center">
             <p>Not working too well?</p>
             <button @click="scrape = !scrape">DISENGAGE FALLBACK</button>
         </div>
         <div v-else class="center">
             <p>Not the full article?</p>
-            <button @click="scrape = !scrape">ENGAGE FALLBACK</button>
+            <button @click="scrape = !scrape; show=true">ENGAGE FALLBACK</button>
         </div>
     </div>
 </template>
@@ -121,6 +135,13 @@ a{
     display: block;
     margin: auto;
     margin-top: 20px;
+}
+.apart{
+    max-width:680px;
+    margin:auto;
+}
+.apart > button{
+    display: inline-block;
 }
 </style>
 
