@@ -3,19 +3,21 @@ import { ref } from 'vue'
 import { get_all } from "../lib.js"
 import PostListItem from "../components/PostListItem.vue"
 import PostLoader from "../components/PostLoader.vue"
+import { usePostStore } from '@/stores/state.js'
 
 const increment = 10;
 const offset = ref(0);
 
 const loading = ref(true);
 const error = ref(null);
-const posts = ref([])
+const store = usePostStore();
+const posts = store.posts;
+
 
 async function getPosts(offset){
     try{
         let list = await get_all(offset)
-        posts.value.push.apply(posts.value, list)
-        console.log(posts.value)
+        posts.push.apply(posts, list)
     } catch (err) {
         error.value = err.toString()
     } finally {

@@ -290,6 +290,19 @@ impl DatabaseConnection {
 
         Ok(conn.exec_drop(query, params! {"uid" => uid, "cid" => cid})?)
     }
+
+    pub async fn get_all_publishers(&self) -> Result<Vec<Subscription>, DetailedError> {
+        let mut conn = self.pool.get_conn()?;
+        Ok(conn.query_map(
+            "SELECT pid, url FROM publisher",
+            |(pid, url): (u64, String)| Subscription {
+                cid: 0,
+                pid: Some(pid),
+                url: url,
+                name: String::from("_"),
+            },
+        )?)
+    }
 }
 
 impl Clone for DatabaseConnection {

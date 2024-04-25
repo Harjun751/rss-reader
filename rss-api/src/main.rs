@@ -1,5 +1,7 @@
 use rss_api::{
-    database::DatabaseConnection, logger, rss_parser, web_scraper, Channel, Post, Subscription,
+    database::DatabaseConnection,
+    logger::{self, DetailedError},
+    rss_parser, web_scraper, Channel, Post, Subscription,
 };
 
 use axum::{
@@ -18,6 +20,7 @@ use serde::Deserialize;
 use std::collections::HashMap;
 use std::env;
 use std::net::SocketAddr;
+use tokio_cron_scheduler::{Job, JobScheduler, JobSchedulerError};
 use tower::ServiceBuilder;
 use tower_http::{cors::CorsLayer, services::ServeFile, trace::TraceLayer};
 use tracing::{event, Level};
@@ -63,6 +66,22 @@ async fn main() {
         .with_state(Appstate { dbconn })
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()))
         .layer(cors);
+
+    let sched = JobScheduler::new().await.unwrap();
+    sched
+        .add(
+            // every 30 mins
+            Job::new_async("0 0,30 * * * *", |_, _| {
+                Box::pin(async {
+                    update_feed_task().await;
+                })
+            })
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    sched.start().await.unwrap();
 
     match env::var("IS_DOCKER_COMPOSED") {
         Ok(_) => {
@@ -440,6 +459,25 @@ async fn delete_channel(
             ))
         }
     }
+}
+
+async fn update_feed_task() {
+    println!("Starting update feed task!");
+    let dbconn = DatabaseConnection::new();
+    let pubs = dbconn.get_all_publishers().await;
+    match pubs {
+        Ok(pubs) => {
+            let data = rss_parser::get_whole_feed(pubs).await;
+            let res = dbconn.insert_posts(&data).await;
+            if let Err(e) = res {
+                DetailedError::new_descriptive(Box::new(e), "Failed auto update script");
+            }
+        }
+        Err(e) => {
+            DetailedError::new_descriptive(Box::new(e), "Failed auto update script");
+        }
+    }
+    println!("Finished update feed task!")
 }
 
 // TODO:

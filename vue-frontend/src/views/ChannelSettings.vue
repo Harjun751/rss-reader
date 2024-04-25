@@ -32,7 +32,6 @@ async function unsubscribe(pid){
 async function subscribe(){
     create_subscription(route.params.id, feed_name.value)
     .then(() => {
-        console.log("bruh")
         getData(route.params.id)
     })
     .catch((err) => {

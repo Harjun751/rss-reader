@@ -6,3 +6,13 @@ export const useUserStore = defineStore('user', () => {
 
     return { uid }
 })
+
+export const useScrollStore = defineStore('scroll', () => {
+    const position = ref({x:0, y:0})
+    return {position}
+})
+
+export const usePostStore = defineStore('post', () => {
+    const posts = ref([])
+    return {posts}
+})

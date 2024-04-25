@@ -1,5 +1,5 @@
 <template>
-    <RouterLink visited-class="visited" :to="{ name: 'article', params: { url: data.link }, query: { pid: data.pid }}">
+    <RouterLink visited-class="visited" :to="{ name: 'article', params: { url: data.link }, query: { pid: data.pid }}" @click="storeScrollPosition">
     <div>
         <h2>{{ data.title }}</h2>
         <p>{{  data.description }}</p>
@@ -9,6 +9,15 @@
 </template>
 
 <script setup>
+import { useScrollStore } from "../stores/state";
+
+const store = useScrollStore();
+
+function storeScrollPosition(){
+    store.position = {x:0, y:window.scrollY}
+    console.log("Saving scroll position: " + store.position.y);
+}
+
 const props = defineProps(['data'])
 const date_object = new Date(Date.parse(props.data.date));
 function construct_info(date){

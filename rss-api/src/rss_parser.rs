@@ -13,9 +13,7 @@ pub async fn get_whole_feed(urls: Vec<Subscription>) -> Vec<Post> {
     for sub in urls {
         let vector = Arc::clone(&vec);
         let handle = tokio::spawn(async move {
-            // println!("getting data from {}...", &url.url);
             let data = from_url(&sub.url).await;
-            // println!("Finished getting data from {}!", &url.url);
             let data = match data {
                 Ok(val) => val,
                 Err(e) => {
