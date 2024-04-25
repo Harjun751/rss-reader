@@ -45,6 +45,14 @@ lazy_static! {
         Site {
             url: "arstechnica.com",
             root_element_selector: Selector::parse(".article-guts").unwrap(),
+        },
+        Site {
+            url: "straitstimes.com",
+            root_element_selector: Selector::parse(".field:not(.field--name-field-related-articles,.field--name-field-display-headline,.field--name-dynamic-twig-fieldnode-st-boilerplate,.field--name-dynamic-twig-fieldnode-social-icons-bottom,.field--name-body)").unwrap(),
+        },
+        Site {
+            url: "rockpapershotgun.com",
+            root_element_selector: Selector::parse(".article_body_content,.headline_image").unwrap(),
         }
     ];
 }

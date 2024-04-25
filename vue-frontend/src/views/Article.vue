@@ -152,5 +152,6 @@ img{
     max-height:70vh;
     display:block;
     margin:auto;
+    margin-top:10px;
 }
 </style>

@@ -9,6 +9,7 @@
 </template>
 
 <script setup>
+import { computed } from "vue";
 import { useScrollStore } from "../stores/state";
 
 const store = useScrollStore();
@@ -19,8 +20,9 @@ function storeScrollPosition(){
 }
 
 const props = defineProps(['data'])
-const date_object = new Date(Date.parse(props.data.date));
-function construct_info(date){
+
+const small_text = computed(() => {
+    let date = new Date(Date.parse(props.data.date));
     let day = date.toLocaleDateString("en-SG", { weekday: 'short' });
     let month = date.toLocaleDateString("en-SG", { month: 'short' });
     let date_num = date.getDate();
@@ -28,8 +30,7 @@ function construct_info(date){
     let time = date.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
 
     return `${props.data.publisher_name} • ${day}, ${month} ${date_num} ${year} • ${time}`;
-}
-const small_text = construct_info(date_object);
+})
 </script>
 
 <style scoped>

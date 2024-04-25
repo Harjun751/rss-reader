@@ -6,7 +6,7 @@ import { RouterLink, RouterView } from 'vue-router'
    <nav>
      <div><RouterLink activeClass="active" to="/all">All</RouterLink></div>
     <div><RouterLink activeClass="active" to="/">Today</RouterLink></div>
-    <div id="settings"><RouterLink to="/settings"><img src="./assets/cog.png"/></RouterLink></div>
+    <div id="settings"><RouterLink to="/settings"><img style="margin-top:0" src="./assets/cog.png"/></RouterLink></div>
   </nav>
   <RouterView/>
 </template>
