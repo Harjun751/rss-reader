@@ -6,7 +6,6 @@ import PostLoader from "../components/PostLoader.vue"
 import { usePostStore } from '@/stores/state.js'
 
 const increment = 10;
-const offset = ref(0);
 
 const loading = ref(true);
 const error = ref(null);
@@ -15,6 +14,7 @@ const posts = store.posts;
 
 
 async function getPosts(offset){
+    console.log("loading posts with offset: " + offset)
     try{
         let list = await get_all(offset)
         posts.push.apply(posts, list)
@@ -25,16 +25,29 @@ async function getPosts(offset){
     }
 }
 
+let shouldScroll = false;
+setTimeout(() => {
+    shouldScroll = true;
+}, 500);
+
 const handleInfiniteScroll = () => {
     const endOfPage = window.innerHeight + window.scrollY >= document.body.offsetHeight;
-    if (endOfPage){
-        offset.value += increment;
-        getPosts(offset.value)
+    if (endOfPage && shouldScroll){
+        shouldScroll = false;
+        store.increment()
+        getPosts(store.offset)
+        setTimeout(()=>{
+            shouldScroll = true;
+        }, 1000)
     }
 };
 window.addEventListener("scroll", handleInfiniteScroll);
 
-getPosts(offset.value)
+if (posts.length == 0){
+    getPosts(store.offset)
+} else {
+    loading.value = false
+}
 </script>
 
 <template>

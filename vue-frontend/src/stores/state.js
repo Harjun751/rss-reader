@@ -9,10 +9,14 @@ export const useUserStore = defineStore('user', () => {
 
 export const useScrollStore = defineStore('scroll', () => {
     const position = ref({x:0, y:0})
-    return {position}
+    return { position }
 })
 
 export const usePostStore = defineStore('post', () => {
     const posts = ref([])
-    return {posts}
+    const offset = ref(0)
+    function increment() {
+        offset.value+=10
+    }
+    return {posts, offset, increment}
 })
