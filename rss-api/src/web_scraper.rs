@@ -53,6 +53,10 @@ lazy_static! {
         Site {
             url: "rockpapershotgun.com",
             root_element_selector: Selector::parse(".article_body_content,.headline_image").unwrap(),
+        },
+        Site {
+            url: "go.theregister.com",
+            root_element_selector: Selector::parse("#article").unwrap(),
         }
     ];
 }
@@ -102,8 +106,10 @@ pub fn clean_html(data: &str, selector: Option<&Selector>) -> CleanedHTML {
                     }
                     "img" => {
                         if let Some(src) = ele.attr("src") {
-                            let text = format!("<img src=\"{}\"/>", src);
-                            builder.push_str(&text);
+                            if src.contains("http") {
+                                let text = format!("<img src=\"{}\"/>", src);
+                                builder.push_str(&text);
+                            }
                         }
                     }
                     _ => {}

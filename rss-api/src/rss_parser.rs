@@ -282,19 +282,28 @@ fn parse_atom<'a>(
             }
         };
 
-        let link = nodes
+        let link_tag = nodes
             .iter()
-            .find(|x| x.has_tag_name("id"))
-            .map(|x| x.text());
+            .find(|x| x.has_tag_name("link"))
+            .map(|x| x.attribute("href"));
 
-        let link = match link {
-            Some(Some(t)) => t.to_owned(),
+        let link = match link_tag {
+            Some(Some(href)) => href.to_owned(),
             _ => {
-                return Err(
-                    "Missing required field link, or it's in the incorrect format!"
-                        .to_string()
-                        .into(),
-                )
+                let link_node = nodes
+                    .iter()
+                    .find(|x| x.has_tag_name("id"))
+                    .map(|x| x.text());
+                match link_node {
+                    Some(Some(t)) => t.to_owned(),
+                    _ => {
+                        return Err(
+                            "Missing required field link, or it's in the incorrect format!"
+                                .to_string()
+                                .into(),
+                        )
+                    }
+                }
             }
         };
 
@@ -336,11 +345,15 @@ fn parse_atom<'a>(
 
         let description = nodes
             .iter()
-            .find(|x| x.has_tag_name("description"))
+            .find(|x| x.has_tag_name("summary"))
             .map(|x| x.text());
 
         let description = match description {
-            Some(Some(t)) => t.to_owned(),
+            Some(Some(t)) => {
+                let to_clean = t.to_owned();
+                let cleaned = web_scraper::clean_html(&to_clean, None);
+                cleaned.raw
+            }
             _ => {
                 // Create the description field
                 // first check raw content to make description. Then, if not, use content

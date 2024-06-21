@@ -20,7 +20,7 @@ use serde::Deserialize;
 use std::collections::HashMap;
 use std::env;
 use std::net::SocketAddr;
-use tokio_cron_scheduler::{Job, JobScheduler, JobSchedulerError};
+use tokio_cron_scheduler::{Job, JobScheduler};
 use tower::ServiceBuilder;
 use tower_http::{cors::CorsLayer, services::ServeFile, trace::TraceLayer};
 use tracing::{event, Level};
